@@ -9,7 +9,7 @@ DEFAULT_FILE = "aes_drive_test.txt.aesd"
 
 #
 # This program is intended to decrypt a SINGLE encrypted file (what a surprise!)
-# from the Boxcryptor solution.
+# from the AES Drive solution.
 #
 
 """
@@ -49,7 +49,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     My packages
 """
 
-import res.aesdatafile as bcdatafile
+import res.aesdatafile as aesdatafile
 import res.fnhelper as helper
 
 
@@ -67,16 +67,6 @@ import res.fnhelper as helper
 #
 # -----------------------------------------------------------------
 
-"""
-    Here we read the Boxcryptor exported keys.
-    The default filepath can be:
-        - Passed in command line
-        - Read in a config file (filepath : ALT_BCKEY_FILEPATH_CONFIGFILE)
-        - Else we use a default one, hard coded in DEFAULT_BCKEY_FILEPATH
-"""
-
-DEFAULT_BCKEY_FILEPATH        = "export.bckey"
-ALT_BCKEY_FILEPATH_CONFIGFILE = "bckey.txt"
 
 arguments = helper.check_arguments(sys.argv)
 
@@ -103,14 +93,15 @@ else:
     Constructing output file name
 """
 encrypted_data_filename, encrypted_data_fileext = os.path.splitext(data_filepath)
-data_directory = os.path.dirname(data_filepath)
+original_dir, original_file = os.path.split(data_filepath)
+
 
 if (encrypted_data_fileext != ".aesd"):
     print("Error: the file you want to decrypt has a bad suffix (filename:" + encrypted_data_filename + ")")
     exit(1)
     
 else:    
-    new_filename = encrypted_data_filename[:-3]
+    new_filename = encrypted_data_filename
 
 """
     Reading data file itself
@@ -119,7 +110,7 @@ else:
 if (os.path.isfile(data_filepath)):
     
     print("Decrypting \'" + data_filepath + "\' file")
-    data_file = bcdatafile.DataFile(data_filepath)
+    data_file = aesdatafile.DataFile(data_filepath)
     
 else:
     
@@ -137,15 +128,15 @@ if (arguments.get("pwd")):
 else:
     
     # no => input()
-    pwd = str(getpass.getpass(prompt="Boxcryptor password :"))
+    pwd = str(getpass.getpass(prompt="AES Drive password :"))
 
 
 """
     Printing files info
 """
 print('-'*72)
-helper.print_parameter("Data directory", data_directory)
-helper.print_parameter("File name (input)", encrypted_data_filename)
+helper.print_parameter("Data directory", os.path.abspath(original_dir))
+helper.print_parameter("File name (input)", original_file)
 helper.print_parameter("File name (output)", new_filename)
 helper.print_data_file_info(data_file)
  

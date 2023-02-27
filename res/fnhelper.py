@@ -79,13 +79,6 @@ def check_arguments(arguments):
     if ("-h" in arguments) | ("--help" in arguments):
         print_help()
         arg_error = True
-        
-    if ("-b" in arguments):
-        b_ind = arguments.index("-b")
-    if ("--bckey" in arguments):
-        b_ind = arguments.index("--bckey")
-    if (b_ind > 0):
-        new_arguments["bckey"] = arguments[b_ind + 1]
 
     if ("-p" in arguments):
         p_ind = arguments.index("-p")
@@ -112,17 +105,15 @@ def print_help():
     """
 
     print(Fore.LIGHTWHITE_EX + "USAGE" + Fore.RESET + "\n")
-    print("\tpython3 bcdecryptor.py [file] [options]\n")
+    print("\tpython3 aesdecryptor.py [file] [options]\n")
     print(Fore.LIGHTWHITE_EX + "DESCRIPTION" + Fore.RESET + "\n")
-    print("\tBoxcryptor decryptor, unofficial Python version. \n")
+    print("\AES Drive decryptor, unofficial Python version. \n")
     print("\tThis program is for information purpose only, no warranty of any kind (see license).\n")
     print("\tThe file you want to decrypt must be the first argument.\n")
-    print("\t" + Fore.LIGHTWHITE_EX + "-b,--bckey " + Fore.RESET + TERM_UNDERLINE + "filepath\n" + TERM_RESET)
-    print("\t\tFilepath of the exported keys file (endind with .bckey)")
-    print("\t\tIf no filepath provided, we'll use the one configured the \'bcdecryptor.py\' file (" +
+    print("\t\tIf no filepath provided, we'll use the one configured the \'aesdecryptor.py\' file (" +
           Fore.LIGHTWHITE_EX + "BCKEY_FILEPATH " + Fore.RESET + "constant).\n")
     print("\t" + Fore.LIGHTWHITE_EX + "-p,--pwd " + Fore.RESET + TERM_UNDERLINE + "password\n" + TERM_RESET)
-    print("\t\tBoxcryptor's user password. If not provided, it will be asked (through the console input).\n")
+    print("\t\AES Drive's user password. If not provided, it will be asked (through the console input).\n")
 
     return
 
@@ -147,9 +138,10 @@ def print_parameter(txt, param):
 def print_data_file_info(data_file):
 
     print('-'*72)
-    print_parameter("File version", data_file.version)
-    print_parameter("File size", str(data_file.file_size))
-    print_parameter("Header length", str(data_file.header_core_length))
+    print_parameter("File type version", data_file.file_type_version)
+    print_parameter("File CRC32", str(data_file.crc32_checksum))
+    print_parameter("Global salt", str(data_file.global_salt))
+    print_parameter("File salt", str(data_file.file_salt))
     print_parameter("Header padding length", str(data_file.header_padding_length))
     print_parameter("Cipher padding length", str(data_file.cipher_padding_length))
     print('-'*72)

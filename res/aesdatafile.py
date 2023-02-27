@@ -1,4 +1,4 @@
-import os
+import os, sys
 import json
 import base64
 import binascii as ba
@@ -16,19 +16,7 @@ import binascii as ba
 # The data file also contains crypto information we need to gather. The file structure depends on the cipher blocksize,
 # which is one of the information within the file.
 #
-# In the file structure, the first block is reserved for the boxcryptor header. This block size is calculated as
-# 'offset', and it's padded with NUL (\x00)
-#
-# +-------------+-------------+-----------+----------------+----------------+-------...------------+
-# | boxcryptor  | Json with   | Padding   | Encrypted      | Encrypted      |       ...            |
-# | header      | crypto info | with \x00 | data block #1  | data block #2  |       ...            |
-# | (48 bytes)  |             |           |                |                |       ...            |
-# +-------------+-------------+-----------+----------------+----------------+-------...------------+
-# |                                       |                |                |                      |
-# |<------------------------------------->|<-------------->|<-------------->|                      |
-# |                                       |   blocksize    |   blocksize    |                      |
-# 0                                    offset                                                 filesize
-#
+
 
 class DataFile:
 
@@ -45,7 +33,7 @@ class DataFile:
         d_file = open(data_filepath, 'rb')
         self.raw_header = d_file.read(144)
 
-        # 1st, get the boxcryptor specific header (48 bytes)
+        # Raw Header
         file_header = self.raw_header
 
         # Header parsing
@@ -63,7 +51,12 @@ class DataFile:
         header_copy = file_header[0:12] + b'\x00\x00\x00\x00' + file_header[16:144]
         h = ba.crc32(header_copy)
         h_ctrl = ba.hexlify(h.to_bytes(4, 'big'))
-        print("Attendu : ", self.crc32_checksum, ", calculé : ", h_ctrl)
+
+        # h_ctrl and self.crc32_checksum should be the same
+        if (h_ctrl != self.crc32_checksum):
+            print("Checksum error")
+            sys.exit(0)
+
 
         # EOF
         d_file.close()
