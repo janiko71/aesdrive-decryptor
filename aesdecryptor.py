@@ -5,6 +5,8 @@
 #
 # ----------------------------------------------------------
 
+DEFAULT_FILE = "aes_drive_test.txt.aesd"
+
 #
 # This program is intended to decrypt a SINGLE encrypted file (what a surprise!)
 # from the Boxcryptor solution.
@@ -47,8 +49,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     My packages
 """
 
-import res.bcexportkeyfile as bckeyfile
-import res.bcdatafile as bcdatafile
+import res.aesdatafile as bcdatafile
 import res.fnhelper as helper
 
 
@@ -82,35 +83,6 @@ arguments = helper.check_arguments(sys.argv)
 if (arguments == None):
     exit()
 
-"""
-    Checking .bckey file argument (filepath)
-"""    
-if (arguments.get("bckey")):
-    
-    # If the .bckey file is provided in command line, we use it
-    bckey_filepath = arguments.get("bckey")
-    
-else:
-    
-    # no bckey file path provided. Let's check if there's one in a special config
-    # file; or else we use the default one.
-    if (os.path.isfile(ALT_BCKEY_FILEPATH_CONFIGFILE)):
-        
-        with open(ALT_BCKEY_FILEPATH_CONFIGFILE,"r",encoding="utf8") as f:
-            bckey_filepath = f.read()
-            print("Using .bckey filepath found in \'" + ALT_BCKEY_FILEPATH_CONFIGFILE + "\' (" +
-                  bckey_filepath + ")")
-            
-    else:
-        
-        print("Using default .bckey filepath (" + DEFAULT_BCKEY_FILEPATH +  ")")
-        bckey_filepath = DEFAULT_BCKEY_FILEPATH
-
-
-"""
-    Now reading key file (mandatory)
-"""
-keyfile = bckeyfile.ExportKeyFile(bckey_filepath)
 
 
 """
@@ -124,17 +96,16 @@ if (arguments.get("file")):
 else:
     
     # no => input()
-    data_filepath = str(input("Data file: "))
+    data_filepath = str(input("Data file: ") or DEFAULT_FILE)
 
 
 """
     Constructing output file name
 """
-encrypted_data_filename = os.path.basename(data_filepath)
-encrypted_data_fileext  = encrypted_data_filename[-3:]
-data_directory          = os.path.dirname(data_filepath)
+encrypted_data_filename, encrypted_data_fileext = os.path.splitext(data_filepath)
+data_directory = os.path.dirname(data_filepath)
 
-if (encrypted_data_fileext != ".bc"):
+if (encrypted_data_fileext != ".aesd"):
     print("Error: the file you want to decrypt has a bad suffix (filename:" + encrypted_data_filename + ")")
     exit(1)
 else:    
