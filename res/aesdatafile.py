@@ -51,37 +51,17 @@ class DataFile:
         # Header parsing
         self.file_type             = file_header[0:4].decode("utf-8")
         self.file_type_version     = int(file_header[4])
-        self.reserved_1            = int.from_bytes(file_header[5:11], byteorder='little')
-        self.crc32_checksum        = int.from_bytes(file_header[12:15], byteorder='little')
-        self.global_salt           = int.from_bytes(file_header[16:31], byteorder='little')
-        self.file_salt             = int.from_bytes(file_header[32:47], byteorder='little')
+        self.reserved_1            = int.from_bytes(file_header[5:12], byteorder='little')
+        self.crc32_checksum        = int.from_bytes(file_header[12:16], byteorder='little')
+        self.global_salt           = int.from_bytes(file_header[16:32], byteorder='little')
+        self.file_salt             = int.from_bytes(file_header[32:48], byteorder='little')
 
-        self.aes_gcm_header        = file_header[48:127]
+        self.aes_gcm_header        = file_header[48:128]
         self.aes_gcm_auth_tag      = file_header[128:143]
 
-        # The 32 last bytes may be hash value
-        some_hash     = file_header[16:48]
-        self.hash     = some_hash.hex()
-
-        # JSON data (file content and encryption information)
-        #crypto_json_txt  = d_file.read(self.header_core_length)
-        crypto_json_txt  = self.raw[48:48+self.header_core_length]
-        self.crypto_json = json.loads(crypto_json_txt)
-
-        # JSON Parsing
-        self.cipher_algo          = self.crypto_json["cipher"]["algorithm"]
-        self.cipher_mode          = self.crypto_json["cipher"]["mode"]
-        self.cipher_padding_mode  = self.crypto_json["cipher"]["padding"]
-        self.cipher_keysize       = self.crypto_json["cipher"]["keySize"]
-        self.cipher_blocksize     = self.crypto_json["cipher"]["blockSize"]
-        self.cipher_iv            = base64.b64decode(self.crypto_json["cipher"]["iv"])
-
-        efk                       = self.crypto_json["encryptedFileKeys"][0]
-        self.file_type            = efk["type"]
-        self.file_id              = efk["id"]
-        self.file_size            = os.path.getsize(data_filepath)
-
-        self.aes_key_encrypted_bytes = base64.b64decode(efk["value"])
+        # Checksum
+        header_copy = file_header[0:11] + b'\x00\x00\x00\x00' + file_header[16:143]
+        h = ba.crc32(header_copy)
 
         # EOF
         d_file.close()

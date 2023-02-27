@@ -108,6 +108,7 @@ data_directory = os.path.dirname(data_filepath)
 if (encrypted_data_fileext != ".aesd"):
     print("Error: the file you want to decrypt has a bad suffix (filename:" + encrypted_data_filename + ")")
     exit(1)
+    
 else:    
     new_filename = encrypted_data_filename[:-3]
 
