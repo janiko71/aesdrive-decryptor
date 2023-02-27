@@ -51,17 +51,19 @@ class DataFile:
         # Header parsing
         self.file_type             = file_header[0:4].decode("utf-8")
         self.file_type_version     = int(file_header[4])
-        self.reserved_1            = int.from_bytes(file_header[5:12], byteorder='little')
-        self.crc32_checksum        = int.from_bytes(file_header[12:16], byteorder='little')
-        self.global_salt           = int.from_bytes(file_header[16:32], byteorder='little')
-        self.file_salt             = int.from_bytes(file_header[32:48], byteorder='little')
+        self.reserved_1            = file_header[5:12]
+        self.crc32_checksum        = ba.hexlify(file_header[12:16])
+        self.global_salt           = ba.hexlify(file_header[16:32])
+        self.file_salt             = ba.hexlify(file_header[32:48])
 
         self.aes_gcm_header        = file_header[48:128]
-        self.aes_gcm_auth_tag      = file_header[128:143]
+        self.aes_gcm_auth_tag      = file_header[128:144]
 
         # Checksum
-        header_copy = file_header[0:11] + b'\x00\x00\x00\x00' + file_header[16:143]
+        header_copy = file_header[0:12] + b'\x00\x00\x00\x00' + file_header[16:144]
         h = ba.crc32(header_copy)
+        h_ctrl = ba.hexlify(h.to_bytes(4, 'big'))
+        print("Attendu : ", self.crc32_checksum, ", calculé : ", h_ctrl)
 
         # EOF
         d_file.close()
