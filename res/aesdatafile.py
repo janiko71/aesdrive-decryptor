@@ -41,8 +41,8 @@ class DataFile:
         self.file_type_version     = int(file_header[4])
         self.reserved_1            = file_header[5:12]
         self.crc32_checksum        = ba.hexlify(file_header[12:16])
-        self.global_salt           = ba.hexlify(file_header[16:32])
-        self.file_salt             = ba.hexlify(file_header[32:48])
+        self.global_salt           = file_header[16:32]
+        self.file_salt             = file_header[32:48]
 
         self.aes_gcm_header        = file_header[48:128]
         self.aes_gcm_auth_tag      = file_header[128:144]

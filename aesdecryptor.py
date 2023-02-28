@@ -7,6 +7,8 @@
 
 DEFAULT_FILE = "aes_drive_test.txt.aesd"
 
+KDF_ITERATIONS = 50000
+
 #
 # This program is intended to decrypt a SINGLE encrypted file (what a surprise!)
 # from the AES Drive solution.
@@ -24,6 +26,7 @@ import base64
 import binascii as ba
 import getpass
 import time
+import hashlib
 
 from colorama import Fore, Back, Style 
 
@@ -43,7 +46,7 @@ from cryptography.hazmat.primitives import asymmetric
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 """
     My packages
@@ -128,7 +131,7 @@ if (arguments.get("pwd")):
 else:
     
     # no => input()
-    pwd = str(getpass.getpass(prompt="AES Drive password :"))
+    pwd = str(getpass.getpass(prompt="AES Drive password: "))
 
 
 """
@@ -162,11 +165,11 @@ backend   = default_backend()
 # 738 base64 (6-bits) = 123 bytes
 #
 
-public_key = serialization.load_der_public_key(
-    keyfile.public_key_bytes,
-    backend
-)
-helper.print_parameter("Public key importation", "OK")
+#public_key = serialization.load_der_public_key(
+#    keyfile.public_key_bytes,
+#    backend
+#)
+#helper.print_parameter("Public key importation", "OK")
 
 
 #
@@ -187,96 +190,36 @@ helper.print_parameter("Public key importation", "OK")
 """
 kdf = PBKDF2HMAC(
     algorithm=hashes.SHA512(),
-    length=64,
-    salt=keyfile.salt_bytes,
-    iterations=keyfile.kdf_iterations,
+    length=32,
+    salt=data_file.global_salt,
+    iterations=KDF_ITERATIONS,
     backend=backend
 )
 
-password_key = kdf.derive(pwd.encode())
+pwd_derived_key = kdf.derive(pwd.encode())
 pwd = None
-helper.print_parameter("Password key creation", "OK")
+helper.print_parameter("Password derived key creation", "OK")
 
+file_key = pwd_derived_key + data_file.file_salt
 
-"""
-    The result of the derivation function is 64 bytes long.
-    
-        - The first 32 bytes (256 buts) is used as an AES key
-        - The second part is used as a hmac key
-"""
-crypto_key = password_key[0:32]
-hmac_key   = password_key[32:]
+sha512 = hashlib.sha512()
+sha512.update(file_key)
+file_key_hash = sha512.digest()
+helper.print_parameter("Key hash computed", "OK")
 
+header_encryption_key = file_key_hash[0:32]
+init_vector           = file_key_hash[32:44]
 
-#
-# Private key
-# ===========
-#
-# --> Private RSA key (encrypted with the user's password)
-#     The user’s private key is already encrypted with the user’s password on the client (user device).
-#     The encrypted private key is then encrypted again with the database encryption key.
-# 
-#     The encrypted private key is base64-encoded, and includes:
-#
-#       . bytes 0->15   : Initialization Vector
-#       . bytes 16->47  : Hmac Hash
-#       . from byte 48  : Private encrypted key itself
-#
-
-given_hmac_hash   = keyfile.encrypted_private_key_bytes[16:48]
-private_key_bytes = keyfile.encrypted_private_key_bytes[48:]
-
-
-"""
-    Hmac verification
-"""
-h = hmac.HMAC(hmac_key, hashes.SHA256(), backend)
-h.update(private_key_bytes)
-calc_hash = h.finalize()
-
-if (calc_hash == given_hmac_hash):
-    
-    helper.print_parameter("HMAC verification", "OK")
-
-    
-else:
-    
-    print(Fore.LIGHTWHITE_EX + 'HMAC verification KO' + Fore.RESET)
-    print(
-        "Problem in HMAC verification; the file may be spoofed waiting"
-        +" for {}, found {})\nYou may also mistyped the password.".format(given_hmac_hash.hex(), calc_hash.hex())
-    )
-    exit()
-
-
-"""
-    Get the init vector
-"""
-init_vector       = keyfile.encrypted_private_key_bytes[0:16]
-helper.print_parameter("Init vector", init_vector.hex())
-
-#
-# Now we have everything we need to decrypt the private key
-#
-
-cipher = Cipher(algorithms.AES(crypto_key), modes.CBC(init_vector), backend=backend)
-decryptor = cipher.decryptor()
-the_private_key_bytes = decryptor.update(private_key_bytes)
-decryptor.finalize()
-
-the_private_key = serialization.load_der_private_key(
-    base64.b64decode(the_private_key_bytes),
-    None,
-    backend)
-
-helper.print_parameter("Private key decryption and importation", "OK")
+helper.print_parameter("Private key and init vector computed", "OK")
 
 
 #
-# --> File key: AES encryption key used to encrypt or decrypt a file. Every file has its own unique and random file key.
+# --> Now we have to decrypt the header [48:127].
 #
 # file_aes_key_encrypted is the AES key encrypted with the user's public key
 #
+aesgcm = AESGCM(header_encryption_key)
+decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
 
 the_file_aes_key = the_private_key.decrypt(
     data_file.aes_key_encrypted_bytes,

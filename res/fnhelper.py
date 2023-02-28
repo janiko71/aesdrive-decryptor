@@ -142,26 +142,6 @@ def print_data_file_info(data_file):
     print_parameter("File CRC32", str(data_file.crc32_checksum))
     print_parameter("Global salt", str(data_file.global_salt))
     print_parameter("File salt", str(data_file.file_salt))
-    print_parameter("Header padding length", str(data_file.header_padding_length))
-    print_parameter("Cipher padding length", str(data_file.cipher_padding_length))
-    print('-'*72)
-    print(data_file.crypto_json)
-    print('-'*72)
-    print(data_file.hash) # SHA384 of smth ?
-    print('-'*72)
-
-    fparam = "{} ({} bits)".format(data_file.cipher_algo, data_file.cipher_keysize)
-    print_parameter("Algo", fparam)
-    print_parameter("Bloc mode", data_file.cipher_mode)
-    print_parameter("Bloc size", str(data_file.cipher_blocksize))
-    print_parameter("Padding type", data_file.cipher_padding_mode)
-    print_parameter("File init vector", data_file.cipher_iv.hex())
-
-    fparam = "{} (type : {})".format(data_file.file_id, data_file.file_type)
-    print_parameter("Load id", fparam)
-
-    fparam = data_file.aes_key_encrypted_bytes.hex()[0:100] + "..."
-    print_parameter("AES file key, encrypted", fparam)
     print('-'*72)
 
     return
