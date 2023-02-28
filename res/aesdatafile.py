@@ -38,7 +38,7 @@ class DataFile:
 
         # Header parsing
         self.file_type             = file_header[0:4].decode("utf-8")
-        self.file_type_version     = int(file_header[4])
+        self.file_type_version     = file_header[4]
         self.reserved_1            = file_header[5:12]
         self.crc32_checksum        = ba.hexlify(file_header[12:16])
         self.global_salt           = file_header[16:32]

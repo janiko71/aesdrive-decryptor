@@ -126,8 +126,10 @@ def print_parameter(txt, param):
 
     if (type(param) == int):
         param = str(param)
-    txt_format = txt.ljust(40,".") + " " + Fore.LIGHTWHITE_EX + param + Fore.RESET
-    print(txt_format)
+    lg = len(param)
+    txt_format = txt.ljust(44 - len(str(lg)),".") + " " + Fore.LIGHTWHITE_EX + "({}) {}" + Fore.RESET
+    formatted_text = txt_format.format(str(lg), param)
+    print(formatted_text)
 
     return
 
@@ -139,9 +141,10 @@ def print_data_file_info(data_file):
 
     print('-'*72)
     print_parameter("File type version", data_file.file_type_version)
-    print_parameter("File CRC32", str(data_file.crc32_checksum))
-    print_parameter("Global salt", str(data_file.global_salt))
-    print_parameter("File salt", str(data_file.file_salt))
+    print_parameter("File CRC32 (verified)", str(data_file.crc32_checksum.decode()))
+    print_parameter("Global salt", str(data_file.global_salt.hex()))
+    print_parameter("File salt", str(data_file.file_salt.hex()))
+    print_parameter("Auth tag", str(data_file.aes_gcm_auth_tag.hex()))
     print('-'*72)
 
     return

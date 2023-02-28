@@ -5,9 +5,12 @@
 #
 # ----------------------------------------------------------
 
-DEFAULT_FILE = "aes_drive_test.txt.aesd"
+DEFAULT_FILE = "zed.txt.aesd"
+#DEFAULT_FILE = "aes_drive_test.txt.aesd"
+DEFAULT_FILE = "AESDrive_Settings.ini.aesd"
 
 KDF_ITERATIONS = 50000
+DEFAULT_PWD = "123456"
 
 #
 # This program is intended to decrypt a SINGLE encrypted file (what a surprise!)
@@ -112,7 +115,7 @@ else:
 
 if (os.path.isfile(data_filepath)):
     
-    print("Decrypting \'" + data_filepath + "\' file")
+    print("Decrypting \'" + data_filepath + "\' file...")
     data_file = aesdatafile.DataFile(data_filepath)
     
 else:
@@ -131,7 +134,7 @@ if (arguments.get("pwd")):
 else:
     
     # no => input()
-    pwd = str(getpass.getpass(prompt="AES Drive password: "))
+    pwd = str(getpass.getpass(prompt="AES Drive password: ") or DEFAULT_PWD)
 
 
 """
@@ -199,16 +202,21 @@ kdf = PBKDF2HMAC(
 pwd_derived_key = kdf.derive(pwd.encode())
 pwd = None
 helper.print_parameter("Password derived key creation", "OK")
+helper.print_parameter("Derived key", pwd_derived_key.hex())
 
-file_key = pwd_derived_key + data_file.file_salt
+file_seed = pwd_derived_key + data_file.file_salt
+helper.print_parameter("File seed", file_seed.hex())
 
 sha512 = hashlib.sha512()
-sha512.update(file_key)
+sha512.update(file_seed)
 file_key_hash = sha512.digest()
 helper.print_parameter("Key hash computed", "OK")
+helper.print_parameter("File key hash", file_key_hash.hex())
 
 header_encryption_key = file_key_hash[0:32]
 init_vector           = file_key_hash[32:44]
+helper.print_parameter("Header encr. key", header_encryption_key.hex())
+helper.print_parameter("Init vector", init_vector.hex())
 
 helper.print_parameter("Private key and init vector computed", "OK")
 
@@ -219,6 +227,7 @@ helper.print_parameter("Private key and init vector computed", "OK")
 # file_aes_key_encrypted is the AES key encrypted with the user's public key
 #
 aesgcm = AESGCM(header_encryption_key)
+
 decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
 
 the_file_aes_key = the_private_key.decrypt(
