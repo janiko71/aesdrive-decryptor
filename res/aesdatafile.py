@@ -13,8 +13,7 @@ import binascii as ba
 # Reference : https://cdn.nsoftware.com/help/NEH/app/nsoftware.AESDrive.htm#pg_aesdfileformat
 
 #
-# The data file also contains crypto information we need to gather. The file structure depends on the cipher blocksize,
-# which is one of the information within the file.
+# The data file also contains crypto information we need to gather. 
 #
 
 

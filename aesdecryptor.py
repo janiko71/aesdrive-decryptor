@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ----------------------------------------------------------
 #
-#                   Boxcryptor Decryptor
+#                   AES Drive Decryptor
 #
 # ----------------------------------------------------------
 
@@ -13,7 +13,7 @@ KDF_ITERATIONS = 50000
 DEFAULT_PWD = "123456"
 
 #
-# This program is intended to decrypt a SINGLE encrypted file (what a surprise!)
+# This program is intended to decrypt a SINGLE encrypted file 
 # from the AES Drive solution.
 #
 
