@@ -11,6 +11,7 @@ DEFAULT_FILE = "AESDrive_Settings.ini.aesd"
 
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "123456"
+PWD_ENCODING = "UTF8"
 
 #
 # This program is intended to decrypt a SINGLE encrypted file 
@@ -29,7 +30,7 @@ import base64
 import binascii as ba
 import getpass
 import time
-import hashlib
+import hashlib, hmac
 
 from colorama import Fore, Back, Style 
 
@@ -179,19 +180,11 @@ backend   = default_backend()
 # Password key
 # =================
 #
-# --> Password key: A "double" AES encryption key derived from your password. The key is created using the key stretching and
-#     strengthening function PBKDF2 with HMACSHA512, 10.000 iterations and a 24 byte salt.
-#
-#     The password key is used to encrypt the user's private key.
-#
-#     The salt is base64-encode
-#     The password should be unicode (UTF8) encoded
-#
 
 """
     Derivation of the user's password
 """
-kdf = PBKDF2HMAC(
+kdf_v = PBKDF2HMAC(
     algorithm=hashes.SHA512(),
     length=32,
     salt=data_file.global_salt,
@@ -199,10 +192,15 @@ kdf = PBKDF2HMAC(
     backend=backend
 )
 
-pwd_derived_key = kdf.derive(pwd.encode())
+pwd_derived_key_verif = kdf_v.derive(pwd.encode(PWD_ENCODING))
+pwd_derived_key = hashlib.pbkdf2_hmac("sha512", pwd.encode(PWD_ENCODING), data_file.global_salt, KDF_ITERATIONS, 32)
+
+# Reset variable
 pwd = None
+
 helper.print_parameter("Password derived key creation", "OK")
 helper.print_parameter("Derived key", pwd_derived_key.hex())
+helper.print_parameter("Derived key verification", pwd_derived_key_verif.hex() + " (" + str(pwd_derived_key == pwd_derived_key_verif) + ")")
 
 file_seed = pwd_derived_key + data_file.file_salt
 helper.print_parameter("File seed", file_seed.hex())
@@ -224,8 +222,7 @@ helper.print_parameter("Private key and init vector computed", "OK")
 #
 # --> Now we have to decrypt the header [48:127].
 #
-# file_aes_key_encrypted is the AES key encrypted with the user's public key
-#
+
 aesgcm = AESGCM(header_encryption_key)
 
 decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
