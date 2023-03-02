@@ -4,6 +4,7 @@ import os
     Crypto packages
 """
 
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 """
@@ -43,7 +44,19 @@ except Exception as e:
     print(f"Bad with 12-bytes ({type(e)})")
 
 try:
+    res = aesgcm.decrypt(iv12, encrypted_msg, None)
+    print(res.encode())
+except Exception as e:
+    print(f"Bad with 12-bytes and no auth_tag ({type(e)})")
+
+try:
     res = aesgcm.decrypt(iv16, encrypted_msg, auth_tag)
     print(res.encode())
 except Exception as e:
     print(f"Bad with 16-bytes ({type(e)})")
+
+try:
+    res = aesgcm.decrypt(iv16, encrypted_msg, None)
+    print(res.encode())
+except Exception as e:
+    print(f"Bad with 16-bytes and no auth_tag ({type(e)})")
