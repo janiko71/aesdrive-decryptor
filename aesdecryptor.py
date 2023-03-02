@@ -7,10 +7,10 @@
 
 DEFAULT_FILE = "zed.txt.aesd"
 #DEFAULT_FILE = "aes_drive_test.txt.aesd"
-DEFAULT_FILE = "AESDrive_Settings.ini.aesd"
+DEFAULT_FILE = "lulu.jpg.aesd"
 
 KDF_ITERATIONS = 50000
-DEFAULT_PWD = "123456"
+DEFAULT_PWD = "aesdformatguide"
 PWD_ENCODING = "UTF8"
 
 #
@@ -203,6 +203,8 @@ helper.print_parameter("Derived key", pwd_derived_key.hex())
 helper.print_parameter("Derived key verification", pwd_derived_key_verif.hex() + " (" + str(pwd_derived_key == pwd_derived_key_verif) + ")")
 
 file_seed = pwd_derived_key + data_file.file_salt
+# Error in doc! The salt is BEFORE the derived key!
+file_seed = data_file.file_salt + pwd_derived_key
 helper.print_parameter("File seed", file_seed.hex())
 
 sha512 = hashlib.sha512()
@@ -215,6 +217,7 @@ header_encryption_key = file_key_hash[0:32]
 init_vector           = file_key_hash[32:44]
 helper.print_parameter("Header encr. key", header_encryption_key.hex())
 helper.print_parameter("Init vector", init_vector.hex())
+helper.print_parameter("Auth tag", data_file.aes_gcm_auth_tag.hex())
 
 helper.print_parameter("Private key and init vector computed", "OK")
 
@@ -227,17 +230,6 @@ aesgcm = AESGCM(header_encryption_key)
 
 decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
 
-the_file_aes_key = the_private_key.decrypt(
-    data_file.aes_key_encrypted_bytes,
-    asymmetric.padding.OAEP(
-        mgf=asymmetric.padding.MGF1(algorithm=hashes.SHA1()),
-        algorithm=hashes.SHA1(),
-        label=None
-    )
-)
-helper.print_parameter("AES file key decryption", "OK")
-crypto_key = the_file_aes_key[32:64]
-#print_parameter("AES file key", crypto_key.hex()) ==> only if you want it
 print('-'*72)
 
 
@@ -245,7 +237,7 @@ print('-'*72)
 
 # -----------------------------------------------------------------
 #
-#  Data file decryption
+#  Data file decryption:NOT YES IMPLEMENTED!
 #
 # -----------------------------------------------------------------
 
@@ -328,13 +320,3 @@ print()
 print("-"*72)
 print("End of decrypting...")
 print("="*72)
-
-
-#
-# Notes:
-#
-# --> AES keys (encrypted with the user's password / wrapping key)
-#
-# --> Wrapping key: This key is the root AES key which is used to encrypt all other AES keys stored on our servers.
-#
-# --> Filename key: This key is used to encrypt filenames if filename encryption is enabled.
