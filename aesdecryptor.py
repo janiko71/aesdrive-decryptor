@@ -8,6 +8,7 @@
 DEFAULT_FILE = "zed.txt.aesd"
 #DEFAULT_FILE = "aes_drive_test.txt.aesd"
 DEFAULT_FILE = "lulu.jpg.aesd"
+DEFAULT_FILE = "test.png.aesd"
 
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
@@ -227,43 +228,48 @@ helper.print_parameter("Private key and init vector computed", "OK")
 #
 
 aesgcm = AESGCM(header_encryption_key)
-
-decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
+# header and auth_tag should be concatenated here (--> /n software support)
+encrypted_msg = data_file.aes_gcm_header + data_file.aes_gcm_auth_tag
+decrypted_header = aesgcm.decrypt(init_vector, encrypted_msg, None)
+helper.print_parameter("Decrypted header", decrypted_header.hex())
 
 print('-'*72)
 
-
-
-
-# -----------------------------------------------------------------
 #
-#  Data file decryption:NOT YES IMPLEMENTED!
-#
-# -----------------------------------------------------------------
-
-#
-# Decrypt the encrypted file key using the user’s private key. Decrypt the encrypted data using the file key.
-#
-#      - Algo AES with a key length of 256 bits,
-#      - Mode CBC (Cipher Block Chaining)
-#      - Padding PKCS7
+# --> Now analying the header
 #
 
-"""
-    Let's calculate the nb of blocks to decrypt. All block are 'data_file.cipher_blocksize', except the last
-    which can be shorter, but with cryptography.io module, the padding is automatically done.
-"""
-offset = 48 + data_file.header_core_length + data_file.header_padding_length
-encrypted_data_length = data_file.file_size - offset - data_file.cipher_padding_length
-nb_blocks = encrypted_data_length // data_file.cipher_blocksize
-if ((encrypted_data_length % data_file.cipher_blocksize) != 0):
-    nb_blocks += 1
+header_padding_length = int.from_bytes(decrypted_header[0:2], 'big')
+header_reserved_1     = decrypted_header[2:16]
+header_xts_key1       = decrypted_header[16:48]
+header_xts_key2       = decrypted_header[48:80]
 
-helper.print_parameter("Encrypted data length", encrypted_data_length)
-helper.print_parameter("Offset", offset)
-helper.print_parameter("Number of blocks to decrypt", nb_blocks)
+helper.print_parameter("Padding length", header_padding_length)
+helper.print_parameter("XTS AES key #1", header_xts_key1.hex())
+helper.print_parameter("XTS AES key #2", header_xts_key2.hex())
+print("-"*72)
 print()
-print("="*72)
+
+# -----------------------------------------------------------------
+#
+#  Data file decryption (with the XTS-AES key)
+#
+# -----------------------------------------------------------------
+
+#
+#  Algo: AES
+#  Mode: XTS (https://cryptography.io/en/latest/hazmat/primitives/symmetric-encryption/#cryptography.hazmat.primitives.ciphers.modes.XTS)
+#  Block size: 512 bytes
+#
+#  Data is padded with 0x00 if needed (cf. padding_length)
+#
+
+algo = algorithms.AES256(header_xts_key1)
+mode = modes.XTS(header_xts_key2)
+cipher = Cipher(algo, mode, backend)
+
+decryptor = cipher.decryptor()
+
 print("Start decrypting...")
 print("-"*72)
 print()

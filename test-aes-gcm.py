@@ -60,3 +60,10 @@ try:
     print(res.encode())
 except Exception as e:
     print(f"Bad with 16-bytes and no auth_tag ({type(e)})")
+
+try:
+    msg = encrypted_msg + auth_tag
+    res = aesgcm.decrypt(iv12, msg, None)
+    print(res.encode())
+except Exception as e:
+    print(f"Bad with 12-bytes concatenated auth_tag ({type(e)})")
