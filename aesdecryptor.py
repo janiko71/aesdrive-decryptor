@@ -5,13 +5,15 @@
 #
 # ----------------------------------------------------------
 
-DEFAULT_FILE = "zed.txt.aesd"
-#DEFAULT_FILE = "aes_drive_test.txt.aesd"
+DEFAULT_FILE = "aes_drive_test.txt.aesd"
 DEFAULT_FILE = "lulu.jpg.aesd"
 DEFAULT_FILE = "test.png.aesd"
+DEFAULT_FILE = "zed.txt.aesd"
+DEFAULT_FILE = "zed_is_dead.txt.aesd"
 
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
+DEFAULT_PWD = "Prout+Caca"
 PWD_ENCODING = "UTF8"
 
 #
