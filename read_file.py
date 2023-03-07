@@ -9,7 +9,7 @@ def multiplyX(bytes16):
 
     t = 0
     tt = 0
-    ret_bytes = bytes(16)
+    ret_bytes = bytes(0)
 
     for i in range(len(bytes16)):
         tt = bytes16[i] >> 7
@@ -19,9 +19,16 @@ def multiplyX(bytes16):
     
     if (tt > 0):
         #bytes16[0] ^= 0x87
+        res = bytes16[0] ^ 135
+        new_ret_bytes = bytes(16)
+        new_ret_bytes = res.to_bytes(1, 'big') + ret_bytes[1:16]
         print("just a job to do")
 
-    return ret_bytes
+        return new_ret_bytes
+
+    else:
+
+        return ret_bytes
 
 # -----
 def xor16(bytes1, bytes2):
@@ -32,10 +39,12 @@ def xor16(bytes1, bytes2):
 
 # ----- Test Mult
 a = bytes.fromhex('3C 59 6E 1F 04 70 D9 A6 E8 72 31 9A 5B AD A8 05')
-a = bytes.fromhex("210be6a9efacd891729588a1b56eb1b6")
-r = multiplyX(a)
 print("a = {0:0128b}".format(int(a.hex(), 16)))
-print("r = {0:0128b}".format(int(r.hex(), 16)))
+for i in range(100):
+    r = multiplyX(a)
+    print("r = {0:0128b}".format(int(r.hex(), 16)))
+    print(int(r.hex(), 16))
+    a = r
 exit()
 
 # ----- Main
