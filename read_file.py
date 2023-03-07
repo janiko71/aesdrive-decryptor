@@ -4,6 +4,42 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.algorithms import AES
 
+# -----
+def multiplyX(bytes16):
+
+    t = 0
+    tt = 0
+    ret_bytes = bytes(16)
+
+    for i in range(len(bytes16)):
+        tt = bytes16[i] >> 7
+        res = ((bytes16[i] << 1) | t) & 255
+        ret_bytes = ret_bytes + res.to_bytes(1, 'big')
+        t = tt
+    
+    if (tt > 0):
+        #bytes16[0] ^= 0x87
+        print("just a job to do")
+
+    return ret_bytes
+
+# -----
+def xor16(bytes1, bytes2):
+
+    res = bytes([a ^ b for a,b in zip(bytes1, bytes2)])
+    return res
+
+
+# ----- Test Mult
+a = bytes.fromhex('3C 59 6E 1F 04 70 D9 A6 E8 72 31 9A 5B AD A8 05')
+a = bytes.fromhex("210be6a9efacd891729588a1b56eb1b6")
+r = multiplyX(a)
+print("a = {0:0128b}".format(int(a.hex(), 16)))
+print("r = {0:0128b}".format(int(r.hex(), 16)))
+exit()
+
+# ----- Main
+
 f = open("zed_is_dead.txt", "rb")
 d1 = f.read()
 print(len(d1))
@@ -27,20 +63,28 @@ cipher2 = Cipher(algo2, modes.ECB())
 
 f = open("zed_is_dead.txt.aesd", "rb")
 a = f.read(144)
+tweak = bytes.fromhex("00"*16)
 while True:
     chunk = f.read(512)
     if chunk:
-        tweak = bytes.fromhex("00"*16)
         enc2 = cipher2.encryptor()
         encrypted_tweak = enc2.update(tweak)
         # Ok jusqu'ici
         # ensuite on bidouille le tweak dans TweakCrypt
-        mode1 = modes.XTS(encrypted_tweak)
-        cipher1 = Cipher(algo1, mode1, backend)
-        decrypted_chunk = cipher1.decryptor().update(chunk)
+        cipher1 = Cipher(AES(k1), modes.ECB(), backend)
+        chunk1 = xor16(chunk[0:16], encrypted_tweak)
+        decrypted_chunk = cipher1.decryptor().update(chunk1)
+        decrypt1 = xor16(decrypted_chunk, encrypted_tweak)
         print(chunk.hex())
-        print(decrypted_chunk.decode())
+        print(decrypt1.decode())
         print('-'*72)
+
+        #cipher1 = Cipher(AES(k1), modes.XTS(encrypted_tweak), backend)
+        #decrypted_chunk = cipher1.decryptor().update(chunk[0:16])
+        #print(decrypted_chunk.hex())
+        #print(decrypted_chunk.decode())
+        #print('-'*72)
+
     else:
         break
 f.close()
@@ -65,5 +109,15 @@ XTS AES key #2............................ (64) da319cc5410ba8dc8edbfd184d26e371
 
 1st tweak: 00 00 00 00 00 00 00... -> 3C 59 6E 1F 04 70 D9 A6...
 2nd tweak: 01 00 00 00 00 00 00... -> DF AB 4B 9D 0D B7 C6 2D...
+
+Input : EB 0B 0C D1 83 B0 E3 A7 09 A3 32 AA 95 3A 6F 3C...
+Entrée AES : D7 52 62 CE 87 C0 3A 01 E1 D1 03 30 CE 97 C7 39 : ok (chunk1)
+Après AES, avant XOR : 78 3C 1D 3F 60 B3 70 C5 80 17 45 E9 7B C7 C7 68
+Output attendu : 44 65 73 20 64 C3 A9 63 68 65 74 73 20 6A 6F 6E : ok avec mode ECB. Quel serait l'équivalent avec mode XTS ?
+
+Output t avant multiply(t): 3C 59 6E 1F 04 70 D9 A6 E8 72 31 9A 5B AD A8 05...
+                En sortie : 78 B2 DC 3E 08 E0 B2 4D D1 E5 62 34 B7 5A 51 0B
+
+        Algo : on décale à gauche (x2) l'ensemble. 
 
 """
