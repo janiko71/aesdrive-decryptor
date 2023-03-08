@@ -20,36 +20,44 @@ TERM_UNDERLINE = '\033[04m'
 TERM_RESET     = '\033[0m'
 
 """
-    Unique block init vector calculation
+    The strange MultiplyX function
 """
+
+def multiplyX(bytes16):
+
+    t = 0
+    tt = 0
+    ret_bytes = bytes(0)
+
+    for i in range(len(bytes16)):
+
+        tt = bytes16[i] >> 7
+        res = ((bytes16[i] << 1) | t) & 255
+        ret_bytes = ret_bytes + res.to_bytes(1, 'big')
+        t = tt
     
-def compute_block_iv(cipher_iv, seed, key, backend):
+    if (tt > 0):
 
-    """
-        This function computes the initialization vector for every
-        encrypted block in the data file. Every block has its own
-        init vector, to prevent cryptoanalyzing.
+        res = ret_bytes[0] ^ 135
+        new_ret_bytes = bytes(16)
+        new_ret_bytes = res.to_bytes(1, 'big') + ret_bytes[1:16]
 
-        The init vector is the first part of a HMAC calculated from
-        the data file init vector, a seed (which is simply the block
-        number, and the file's AES key)
-    """
+        return new_ret_bytes
 
-    tmp_data = bytearray(16)
-    tmp_data[0:16] = cipher_iv
+    else:
 
-    for i in range(0,8):
-        b = seed & 255
-        tmp_data.append(b)
-        seed = seed >> 8
+        return ret_bytes
 
-    h = hmac.HMAC(key, hashes.SHA256(), backend=backend)
-    h.update(bytes(tmp_data))
-    tmp_buffer = h.finalize()
 
-    res = tmp_buffer[0:len(cipher_iv)]
-    
+"""
+    A XOR function for (long) bytes
+"""
+
+def xor16(bytes1, bytes2):
+
+    res = bytes([a ^ b for a,b in zip(bytes1, bytes2)])
     return res
+
 
 
 """

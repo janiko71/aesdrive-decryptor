@@ -1,51 +1,11 @@
 import io
 
+from res.fnhelper import xor16, multiplyX
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.algorithms import AES
 
-# -----
-def multiplyX(bytes16):
-
-    t = 0
-    tt = 0
-    ret_bytes = bytes(0)
-
-    for i in range(len(bytes16)):
-        tt = bytes16[i] >> 7
-        res = ((bytes16[i] << 1) | t) & 255
-        ret_bytes = ret_bytes + res.to_bytes(1, 'big')
-        t = tt
-    
-    if (tt > 0):
-        #bytes16[0] ^= 0x87
-        res = bytes16[0] ^ 135
-        new_ret_bytes = bytes(16)
-        new_ret_bytes = res.to_bytes(1, 'big') + ret_bytes[1:16]
-        print("just a job to do")
-
-        return new_ret_bytes
-
-    else:
-
-        return ret_bytes
-
-# -----
-def xor16(bytes1, bytes2):
-
-    res = bytes([a ^ b for a,b in zip(bytes1, bytes2)])
-    return res
-
-
-# ----- Test Mult
-a = bytes.fromhex('3C 59 6E 1F 04 70 D9 A6 E8 72 31 9A 5B AD A8 05')
-print("a = {0:0128b}".format(int(a.hex(), 16)))
-for i in range(100):
-    r = multiplyX(a)
-    print("r = {0:0128b}".format(int(r.hex(), 16)))
-    print(int(r.hex(), 16))
-    a = r
-exit()
 
 # ----- Main
 
@@ -59,7 +19,7 @@ d2 = f.read()
 print(len(d2))
 f.close()
 
-print(len(d2)-len(d1))
+print(len(d2)-len(d1)-144)
 print('-'*72)
 
 k1 = bytes.fromhex("210be6a9efacd891729588a1b56eb1b68f3fe6e9cb5283cdb459293c4d0146b4")
@@ -68,35 +28,46 @@ k2 = bytes.fromhex("da319cc5410ba8dc8edbfd184d26e371e5efb9d821750b99af3bac0eaf30
 backend = default_backend()
 algo1 = AES(k1)
 algo2 = AES(k2)
+cipher1 = Cipher(algo1, modes.ECB())
 cipher2 = Cipher(algo2, modes.ECB())
 
 f = open("zed_is_dead.txt.aesd", "rb")
 a = f.read(144)
-tweak = bytes.fromhex("00"*16)
-while True:
-    chunk = f.read(512)
-    if chunk:
-        enc2 = cipher2.encryptor()
-        encrypted_tweak = enc2.update(tweak)
-        # Ok jusqu'ici
-        # ensuite on bidouille le tweak dans TweakCrypt
-        cipher1 = Cipher(AES(k1), modes.ECB(), backend)
-        chunk1 = xor16(chunk[0:16], encrypted_tweak)
-        decrypted_chunk = cipher1.decryptor().update(chunk1)
-        decrypt1 = xor16(decrypted_chunk, encrypted_tweak)
-        print(chunk.hex())
-        print(decrypt1.decode())
-        print('-'*72)
+current_sector_offset = 0
 
-        #cipher1 = Cipher(AES(k1), modes.XTS(encrypted_tweak), backend)
-        #decrypted_chunk = cipher1.decryptor().update(chunk[0:16])
-        #print(decrypted_chunk.hex())
-        #print(decrypted_chunk.decode())
-        #print('-'*72)
+decrypted = ""
+
+while True:
+
+    chunk = f.read(512)
+    len_chunk = len(chunk)
+    tweak = current_sector_offset.to_bytes(16, 'little')
+    enc2 = cipher2.encryptor()
+    encrypted_tweak = enc2.update(tweak)
+
+    if chunk:
+        
+        for pos in range(0, len_chunk, 16):
+        
+            chunk1 = xor16(chunk[pos:pos+16], encrypted_tweak)
+            decrypted_chunk = cipher1.decryptor().update(chunk1)
+            decrypt1 = xor16(decrypted_chunk, encrypted_tweak)
+            #print(decrypt1.hex())
+            #print(current_sector_offset, pos, decrypt1.decode())
+            decrypted = decrypted + decrypt1.decode()
+            #print('-'*72)
+
+            encrypted_tweak = multiplyX(encrypted_tweak)
+        
+        # Next sector
+        current_sector_offset = current_sector_offset + 1 
 
     else:
         break
 f.close()
+
+print(decrypted)
+print('-'*72)
 
 
 #Read
