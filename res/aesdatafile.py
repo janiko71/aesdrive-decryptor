@@ -19,7 +19,7 @@ import binascii as ba
 
 class DataFile:
 
-    def __init__(self, data_filepath):
+    def __init__(self, header):
 
         """
             The init function is the constructor. All we need is the file path.
@@ -28,9 +28,7 @@ class DataFile:
             The header is 144 bytes long. 
         """
 
-        self.filepath = data_filepath
-        d_file = open(data_filepath, 'rb')
-        self.raw_header = d_file.read(144)
+        self.raw_header = header
 
         # Raw Header
         file_header = self.raw_header
@@ -55,10 +53,6 @@ class DataFile:
         if (h_ctrl != self.crc32_checksum):
             print("Checksum error")
             sys.exit(0)
-
-
-        # EOF
-        d_file.close()
 
 
 

@@ -6,14 +6,16 @@
 # ----------------------------------------------------------
 
 DEFAULT_FILE = "aes_drive_test.txt.aesd"
-DEFAULT_FILE = "lulu.jpg.aesd"
 DEFAULT_FILE = "test.png.aesd"
 DEFAULT_FILE = "zed.txt.aesd"
 DEFAULT_FILE = "zed_is_dead.txt.aesd"
+DEFAULT_FILE = "lulu.jpg.aesd"
 
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
 PWD_ENCODING = "UTF8"
+HEADER_LENGTH = 144
+SECTOR_LENGTH = 512
 
 #
 # This program is intended to decrypt a SINGLE encrypted file 
@@ -34,6 +36,8 @@ import getpass
 import time
 import hashlib, hmac
 
+from res.fnhelper import xor16, multiplyX
+
 from colorama import Fore, Back, Style 
 
 
@@ -53,6 +57,9 @@ from cryptography.hazmat.primitives import asymmetric
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.ciphers.algorithms import AES
+
+from cryptography.exceptions import InvalidTag
 
 """
     My packages
@@ -116,10 +123,16 @@ else:
     Reading data file itself
 """
 
+
+
 if (os.path.isfile(data_filepath)):
+
+    f_in  = open(data_filepath, "rb")
+    file_header = f_in.read(HEADER_LENGTH)
     
     print("Decrypting \'" + data_filepath + "\' file...")
-    data_file = aesdatafile.DataFile(data_filepath)
+    data_file = aesdatafile.DataFile(file_header)
+    file_stats = os.stat(data_filepath)
     
 else:
     
@@ -229,9 +242,20 @@ helper.print_parameter("Private key and init vector computed", "OK")
 #
 
 aesgcm = AESGCM(header_encryption_key)
+
 # header and auth_tag should be concatenated here (--> /n software support)
+
 encrypted_msg = data_file.aes_gcm_header + data_file.aes_gcm_auth_tag
-decrypted_header = aesgcm.decrypt(init_vector, encrypted_msg, None)
+
+try:
+    decrypted_header = aesgcm.decrypt(init_vector, encrypted_msg, None)
+except InvalidTag:
+    helper.print_parameter("Decrypted header", helper.TERM_RED + helper.TERM_BOLD + "Error (InvalidTag), maybe wrong password?" + helper.TERM_RESET)
+    exit(0)
+except Exception as a:
+    print("Very bad exception, should not happen ({})".format(e))
+    exit(0)
+
 helper.print_parameter("Decrypted header", decrypted_header.hex())
 
 print('-'*72)
@@ -248,6 +272,10 @@ header_xts_key2       = decrypted_header[48:80]
 helper.print_parameter("Padding length", header_padding_length)
 helper.print_parameter("XTS AES key #1", header_xts_key1.hex())
 helper.print_parameter("XTS AES key #2", header_xts_key2.hex())
+
+file_length = file_stats.st_size - HEADER_LENGTH - header_padding_length
+helper.print_parameter("Expected data length", file_length)
+
 print("-"*72)
 print()
 
@@ -265,12 +293,6 @@ print()
 #  Data is padded with 0x00 if needed (cf. padding_length)
 #
 
-algo = algorithms.AES256(header_xts_key1)
-mode = modes.XTS(header_xts_key2)
-cipher = Cipher(algo, mode, backend)
-
-decryptor = cipher.decryptor()
-
 print("Start decrypting...")
 print("-"*72)
 print()
@@ -283,45 +305,78 @@ t0 = time.time()
 """
     Decrypts all the blocks
 """
-f_in  = open(data_filepath, "rb")
+
 f_out = open(new_filename, "wb")   # Yes, we overwrite the output file
 
-# Read the 1st block (header), not used here
-f_in.read(offset)
+backend = default_backend()
 
-# Now read all the encrypted blocks
-for block_nb in range (1, nb_blocks + 1):
-    
-    block_range = block_nb * data_file.cipher_blocksize
-    #block = data_file.raw[block_range:block_range + data_file.cipher_blocksize]
-    block = f_in.read(data_file.cipher_blocksize)
-    block_length = len(block)
-    
-    # Compute block IV, derived from IV
-    block_iv = helper.compute_block_iv(data_file.cipher_iv, block_nb - 1, crypto_key, backend)
+algo_key1 = AES(header_xts_key1)
+algo_key2 = AES(header_xts_key2)
 
-    # Setting parameters for AES decryption (the key and the init vector)
-    cipher = Cipher(algorithms.AES(crypto_key), modes.CBC(block_iv), backend=backend)
-    decryptor = cipher.decryptor()
-    decrypted_block = decryptor.update(block)
-    decryptor.finalize()
+cipher_key1 = Cipher(algo_key1, modes.ECB())
+cipher_key2 = Cipher(algo_key2, modes.ECB())
 
-    # Padding exception for the last block
-    progression = (block_nb / nb_blocks * 100)
-    print("Fileblock #{}, progression {:6.2f} %".format(block_nb, progression), end="\r", flush=True)
-    if (block_nb == nb_blocks):
-        decrypted_block = decrypted_block[:-data_file.cipher_padding_length]
-    f_out.write(decrypted_block)
+decryptor_key1 = cipher_key1.decryptor()
+encryptor_key2 = cipher_key2.encryptor()
 
-f_in.close
+# Remember: we already read the first 144 bytes!
+
+current_sector_offset = 0
+byte_offset = 0
+decrypted = ""
+
+while True:
+
+    chunk = f_in.read(SECTOR_LENGTH)
+    len_chunk = len(chunk)
+    tweak = current_sector_offset.to_bytes(16, 'little')
+    encrypted_tweak = encryptor_key2.update(tweak)
+
+    if chunk:
+        
+        for pos in range(0, len_chunk, 16):
+
+            byte_offset = byte_offset + 16
+            
+            bytes_chunk = xor16(chunk[pos:pos+16], encrypted_tweak)
+            decrypted_chunk = decryptor_key1.update(bytes_chunk)
+            bytes_decrypted = xor16(decrypted_chunk, encrypted_tweak)
+            #print(decrypt1.hex())
+            #print(current_sector_offset, pos, bytes_decrypted.decode())
+
+            if (byte_offset > file_length):
+                # End of data!
+                last_block_length = file_length % 16
+                f_out.write(bytes_decrypted[0:last_block_length])
+            else:
+                f_out.write(bytes_decrypted)
+            #print('-'*72)
+
+            encrypted_tweak = multiplyX(encrypted_tweak)
+
+
+        # Next sector
+        current_sector_offset = current_sector_offset + 1 
+
+    else:
+        break
+
+# EOF *2
+# -----
+
+f_in.close()
 f_out.close()
+
+print(decrypted)
+print('-'*72)
+
 
 """
     Execution time, for information
 """    
 execution_time = time.time() - t0
 
-print("{} blocks decrypted in {:.2f} seconds".format(nb_blocks, execution_time))
+print("File decrypted in {:.2f} seconds".format(execution_time))
 
 print()
 print("-"*72)

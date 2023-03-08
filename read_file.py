@@ -52,12 +52,13 @@ while True:
             chunk1 = xor16(chunk[pos:pos+16], encrypted_tweak)
             decrypted_chunk = cipher1.decryptor().update(chunk1)
             decrypt1 = xor16(decrypted_chunk, encrypted_tweak)
-            #print(decrypt1.hex())
-            #print(current_sector_offset, pos, decrypt1.decode())
+            print(decrypt1.hex())
+            print(current_sector_offset, pos, decrypt1.decode())
             decrypted = decrypted + decrypt1.decode()
             #print('-'*72)
 
             encrypted_tweak = multiplyX(encrypted_tweak)
+
         
         # Next sector
         current_sector_offset = current_sector_offset + 1 

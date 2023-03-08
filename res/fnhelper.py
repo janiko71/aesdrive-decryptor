@@ -18,6 +18,8 @@ from colorama import Fore, Back, Style
 
 TERM_UNDERLINE = '\033[04m'
 TERM_RESET     = '\033[0m'
+TERM_RED       = '\033[31m'
+TERM_BOLD      = '\033[01m'
 
 """
     The strange MultiplyX function
