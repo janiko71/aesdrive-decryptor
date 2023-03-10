@@ -6,10 +6,10 @@
 # ----------------------------------------------------------
 
 DEFAULT_FILE = "aes_drive_test.txt.aesd"
-DEFAULT_FILE = "test.png.aesd"
-DEFAULT_FILE = "zed.txt.aesd"
 DEFAULT_FILE = "zed_is_dead.txt.aesd"
 DEFAULT_FILE = "lulu.jpg.aesd"
+DEFAULT_FILE = "test.png.aesd"
+DEFAULT_FILE = "zed.txt.aesd"
 
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
@@ -335,8 +335,6 @@ while True:
     if chunk:
         
         for pos in range(0, len_chunk, 16):
-
-            byte_offset = byte_offset + 16
             
             bytes_chunk = xor16(chunk[pos:pos+16], encrypted_tweak)
             decrypted_chunk = decryptor_key1.update(bytes_chunk)
@@ -344,10 +342,13 @@ while True:
             #print(decrypt1.hex())
             #print(current_sector_offset, pos, bytes_decrypted.decode())
 
+            byte_offset = byte_offset + 16
+
             if (byte_offset > file_length):
                 # End of data!
                 last_block_length = file_length % 16
                 f_out.write(bytes_decrypted[0:last_block_length])
+                break
             else:
                 f_out.write(bytes_decrypted)
             #print('-'*72)

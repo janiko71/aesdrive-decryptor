@@ -1,6 +1,12 @@
 # Example code
 nsoft
 
+# test files
+*.txt
+*.ini
+*.png
+*.jpg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

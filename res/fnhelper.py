@@ -117,13 +117,13 @@ def print_help():
     print(Fore.LIGHTWHITE_EX + "USAGE" + Fore.RESET + "\n")
     print("\tpython3 aesdecryptor.py [file] [options]\n")
     print(Fore.LIGHTWHITE_EX + "DESCRIPTION" + Fore.RESET + "\n")
-    print("\AES Drive decryptor, unofficial Python version. \n")
+    print("\tAES Drive decryptor, unofficial Python version. \n")
     print("\tThis program is for information purpose only, no warranty of any kind (see license).\n")
     print("\tThe file you want to decrypt must be the first argument.\n")
     print("\t\tIf no filepath provided, we'll use the one configured the \'aesdecryptor.py\' file (" +
           Fore.LIGHTWHITE_EX + "BCKEY_FILEPATH " + Fore.RESET + "constant).\n")
     print("\t" + Fore.LIGHTWHITE_EX + "-p,--pwd " + Fore.RESET + TERM_UNDERLINE + "password\n" + TERM_RESET)
-    print("\t\AES Drive's user password. If not provided, it will be asked (through the console input).\n")
+    print("\t\tAES Drive's user password. If not provided, it will be asked (through the console input).\n")
 
     return
 
