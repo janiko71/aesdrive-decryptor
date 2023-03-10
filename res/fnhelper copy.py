@@ -21,6 +21,45 @@ TERM_RESET     = '\033[0m'
 TERM_RED       = '\033[31m'
 TERM_BOLD      = '\033[01m'
 
+"""
+    The strange MultiplyX function
+"""
+
+def multiplyX(bytes16):
+
+    t = 0
+    tt = 0
+    ret_bytes = bytes(0)
+
+    for i in range(len(bytes16)):
+
+        tt = bytes16[i] >> 7
+        res = ((bytes16[i] << 1) | t) & 255
+        ret_bytes = ret_bytes + res.to_bytes(1, 'big')
+        t = tt
+    
+    if (tt > 0):
+
+        res = ret_bytes[0] ^ 135
+        new_ret_bytes = bytes(16)
+        new_ret_bytes = res.to_bytes(1, 'big') + ret_bytes[1:16]
+
+        return new_ret_bytes
+
+    else:
+
+        return ret_bytes
+
+
+"""
+    A XOR function for (long) bytes
+"""
+
+def xor16(bytes1, bytes2):
+
+    res = bytes([a ^ b for a,b in zip(bytes1, bytes2)])
+    return res
+
 
 
 """

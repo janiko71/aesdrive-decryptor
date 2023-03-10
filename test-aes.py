@@ -37,3 +37,10 @@ print("encrypted", len(encrypted), encrypted.hex())
 """
 
 print(aesgcm.decrypt(iv, encrypted, auth_token).decode())
+
+"""
+    k1:              '0496801a02924a07f0cd10ce6ead6b64c1de4379b61772faf73432991f3d42f4'
+    k2:              'f79314e28ce4a060bb305ea7c4518f3a6ac0f03acc3d0ba730a5b2307ce1f59b'
+    tweak:           '00000000000000000000000000000000'
+    encrypted_tweak: 'e9edcd08a842eff8303058ff57105561'
+"""

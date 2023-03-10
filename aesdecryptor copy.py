@@ -36,6 +36,8 @@ import getpass
 import time
 import hashlib, hmac
 
+from res.fnhelper import xor16, multiplyX
+
 from colorama import Fore, Back, Style 
 
 
@@ -308,7 +310,14 @@ f_out = open(new_filename, "wb")   # Yes, we overwrite the output file
 
 backend = default_backend()
 
-xts_key = header_xts_key1 + header_xts_key2
+algo_key1 = AES(header_xts_key1)
+algo_key2 = AES(header_xts_key2)
+
+cipher_key1 = Cipher(algo_key1, modes.ECB())
+cipher_key2 = Cipher(algo_key2, modes.ECB())
+
+decryptor_key1 = cipher_key1.decryptor()
+encryptor_key2 = cipher_key2.encryptor()
 
 # Remember: we already read the first 144 bytes!
 
@@ -321,22 +330,31 @@ while True:
     chunk = f_in.read(SECTOR_LENGTH)
     len_chunk = len(chunk)
     tweak = current_sector_offset.to_bytes(16, 'little')
+    encrypted_tweak = encryptor_key2.update(tweak)
 
     if chunk:
         
-        decryptor_xts = Cipher(algorithms.AES(xts_key), modes.XTS(tweak)).decryptor()
-        decrypted_chunk = decryptor_xts.update(chunk)
-        #print(bytes_decrypted.hex())
+        for pos in range(0, len_chunk, 16):
+            
+            bytes_chunk = xor16(chunk[pos:pos+16], encrypted_tweak)
+            decrypted_chunk = decryptor_key1.update(bytes_chunk)
+            bytes_decrypted = xor16(decrypted_chunk, encrypted_tweak)
+            #print(bytes_decrypted.hex())
+            #print(current_sector_offset, pos, bytes_decrypted.decode())
 
-        byte_offset = byte_offset + SECTOR_LENGTH
+            byte_offset = byte_offset + 16
 
-        if (byte_offset > file_length):
-            # End of data!
-            last_block_length = file_length % SECTOR_LENGTH
-            f_out.write(decrypted_chunk[0:last_block_length])
-            break
-        else:
-            f_out.write(decrypted_chunk)
+            if (byte_offset > file_length):
+                # End of data!
+                last_block_length = file_length % 16
+                f_out.write(bytes_decrypted[0:last_block_length])
+                break
+            else:
+                f_out.write(bytes_decrypted)
+            #print('-'*72)
+
+            encrypted_tweak = multiplyX(encrypted_tweak)
+
 
         # Next sector
         current_sector_offset = current_sector_offset + 1 
