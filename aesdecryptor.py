@@ -247,6 +247,8 @@ encrypted_msg = data_file.aes_gcm_header + data_file.aes_gcm_auth_tag
 
 try:
     decrypted_header = aesgcm.decrypt(init_vector, encrypted_msg, None)
+    # Instead of:
+    #    decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
 except InvalidTag:
     helper.print_parameter("Decrypted header", helper.TERM_RED + helper.TERM_BOLD + "Error (InvalidTag), maybe wrong password?" + helper.TERM_RESET)
     exit(0)
