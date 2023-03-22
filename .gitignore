@@ -1,11 +1,13 @@
-# Example code
+# Example code, archives
 nsoft
+archives
 
 # test files
 *.txt
 *.ini
 *.png
 *.jpg
+.aesd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

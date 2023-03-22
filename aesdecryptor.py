@@ -5,11 +5,7 @@
 #
 # ----------------------------------------------------------
 
-DEFAULT_FILE = "aes_drive_test.txt.aesd"
-DEFAULT_FILE = "zed_is_dead.txt.aesd"
-DEFAULT_FILE = "lulu.jpg.aesd"
 DEFAULT_FILE = "test.png.aesd"
-DEFAULT_FILE = "zed.txt.aesd"
 
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
@@ -20,6 +16,8 @@ SECTOR_LENGTH = 512
 #
 # This program is intended to decrypt a SINGLE encrypted file 
 # from the AES Drive solution.
+#
+# The file structure is described in res.aesdatafile.py
 #
 
 """
