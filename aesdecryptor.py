@@ -1,367 +1,585 @@
 #!/usr/bin/env python3
-# ----------------------------------------------------------
-#
-#                   AES Drive Decryptor
-#
-# ----------------------------------------------------------
-
-DEFAULT_FILE = "test.png.aesd"
-
-KDF_ITERATIONS = 50000
-DEFAULT_PWD = "aesdformatguide"
-PWD_ENCODING = "UTF8"
-HEADER_LENGTH = 144
-SECTOR_LENGTH = 512
-
-#
-# This program is intended to decrypt a SINGLE encrypted file 
-# from the AES Drive solution.
-#
-# The file structure is described in res.aesdatafile.py
-#
-
 """
-    Standard packages
+AES Drive Decryptor - Professional Edition
+
+A robust, professional-grade tool for decrypting AES Drive encrypted files.
+Supports .aesd and .aesf file formats with comprehensive error handling,
+logging, and security features.
+
+Author: Jean GEBAROWSKI
+License: MIT
+Version: 2.0.0
 """
 
 import os
 import sys
-import pprint
-import json
-import base64
-import binascii as ba
-import getpass
+import logging
+import argparse
 import time
-import hashlib, hmac
+import hashlib
+import getpass
+import mmap
+from pathlib import Path
+from typing import Optional, Tuple, BinaryIO
+from dataclasses import dataclass
+from contextlib import contextmanager
 
-from colorama import Fore, Back, Style 
-
-
-"""
-    Crypto packages
-"""
-
+# Crypto imports
 from cryptography.hazmat.backends import default_backend
-
-from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import hmac
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives import keywrap
-from cryptography.hazmat.primitives import asymmetric
-
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives.ciphers.algorithms import AES
-
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidTag
 
-"""
-    My packages
-"""
-
-import res.aesdatafile as aesdatafile
-import res.fnhelper as helper
-
-
-
-# ===========================================================================
-#
-#   main() program
-#
-# ===========================================================================
-
-
-# -----------------------------------------------------------------
-#
-#  Reading arguments (in command line or in some configuration)
-#
-# -----------------------------------------------------------------
-
-
-arguments = helper.check_arguments(sys.argv)
-
-if (arguments == None):
-    exit()
-
-
-
-"""
-    Reading data filepath
-"""
-if (arguments.get("file")):
-    
-    # Data filepath in commande line
-    data_filepath = arguments.get("file")
-    
-else:
-    
-    # no => input()
-    data_filepath = str(input("Data file: ") or DEFAULT_FILE)
-
-
-"""
-    Constructing output file name
-"""
-encrypted_data_filename, encrypted_data_fileext = os.path.splitext(data_filepath)
-original_dir, original_file = os.path.split(data_filepath)
-
-
-if (encrypted_data_fileext != ".aesd"):
-    print("Error: the file you want to decrypt has a bad suffix (filename:" + encrypted_data_filename + ")")
-    exit(1)
-    
-else:    
-    new_filename = encrypted_data_filename
-
-"""
-    Reading data file itself
-"""
-
-
-
-if (os.path.isfile(data_filepath)):
-
-    f_in  = open(data_filepath, "rb")
-    file_header = f_in.read(HEADER_LENGTH)
-    
-    print("Decrypting \'" + data_filepath + "\' file...")
-    data_file = aesdatafile.DataFile(file_header)
-    file_stats = os.stat(data_filepath)
-    
-else:
-    
-    print("File \'" + data_filepath + "\' not found!")
-    exit()
-
-"""
-    Reading user's password
-"""
-if (arguments.get("pwd")):
-    
-    # password in command line
-    pwd = arguments.get("pwd")
-    
-else:
-    
-    # no => input()
-    pwd = str(getpass.getpass(prompt="AES Drive password: ") or DEFAULT_PWD)
-
-
-"""
-    Printing files info
-"""
-print('-'*72)
-helper.print_parameter("Data directory", os.path.abspath(original_dir))
-helper.print_parameter("File name (input)", original_file)
-helper.print_parameter("File name (output)", new_filename)
-helper.print_data_file_info(data_file)
- 
-
-
-# -----------------------------------------------------------------
-#
-#  Constructing crypto elements
-#
-# -----------------------------------------------------------------
-
-"""
-    Crypto init
-"""    
-backend   = default_backend()
-
-
-#
-# Public key
-# ===============
-#
-# RSA-4096 key is in DER format
-# 738 base64 (6-bits) = 123 bytes
-#
-
-#public_key = serialization.load_der_public_key(
-#    keyfile.public_key_bytes,
-#    backend
-#)
-#helper.print_parameter("Public key importation", "OK")
-
-
-#
-# Password key
-# =================
-#
-
-"""
-    Derivation of the user's password
-"""
-kdf_v = PBKDF2HMAC(
-    algorithm=hashes.SHA512(),
-    length=32,
-    salt=data_file.global_salt,
-    iterations=KDF_ITERATIONS,
-    backend=backend
-)
-
-pwd_derived_key_verif = kdf_v.derive(pwd.encode(PWD_ENCODING))
-pwd_derived_key = hashlib.pbkdf2_hmac("sha512", pwd.encode(PWD_ENCODING), data_file.global_salt, KDF_ITERATIONS, 32)
-
-# Reset variable
-pwd = None
-
-helper.print_parameter("Password derived key creation", "OK")
-helper.print_parameter("Derived key", pwd_derived_key.hex())
-helper.print_parameter("Derived key verification", pwd_derived_key_verif.hex() + " (" + str(pwd_derived_key == pwd_derived_key_verif) + ")")
-
-file_seed = pwd_derived_key + data_file.file_salt
-# Error in doc! The salt is BEFORE the derived key!
-file_seed = data_file.file_salt + pwd_derived_key
-helper.print_parameter("File seed", file_seed.hex())
-
-sha512 = hashlib.sha512()
-sha512.update(file_seed)
-file_key_hash = sha512.digest()
-helper.print_parameter("Key hash computed", "OK")
-helper.print_parameter("File key hash", file_key_hash.hex())
-
-header_encryption_key = file_key_hash[0:32]
-init_vector           = file_key_hash[32:44]
-helper.print_parameter("Header encr. key", header_encryption_key.hex())
-helper.print_parameter("Init vector", init_vector.hex())
-helper.print_parameter("Auth tag", data_file.aes_gcm_auth_tag.hex())
-
-helper.print_parameter("Private key and init vector computed", "OK")
-
-
-#
-# --> Now we have to decrypt the header [48:127].
-#
-
-aesgcm = AESGCM(header_encryption_key)
-
-# header and auth_tag should be concatenated here (--> /n software support)
-
-encrypted_msg = data_file.aes_gcm_header + data_file.aes_gcm_auth_tag
+# Third-party imports
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
 
 try:
-    decrypted_header = aesgcm.decrypt(init_vector, encrypted_msg, None)
-    # Instead of:
-    #    decrypted_header = aesgcm.decrypt(init_vector, data_file.aes_gcm_header, data_file.aes_gcm_auth_tag)
-except InvalidTag:
-    helper.print_parameter("Decrypted header", helper.TERM_RED + helper.TERM_BOLD + "Error (InvalidTag), maybe wrong password?" + helper.TERM_RESET)
-    exit(0)
-except Exception as a:
-    print("Very bad exception, should not happen ({})".format(e))
-    exit(0)
+    import colorama
+    from colorama import Fore, Style
+    colorama.init()
+    HAS_COLORAMA = True
+except ImportError:
+    HAS_COLORAMA = False
 
-helper.print_parameter("Decrypted header", decrypted_header.hex())
 
-print('-'*72)
+# Constants
+class Config:
+    """Configuration constants for AES Drive decryption."""
+    
+    # File format constants
+    HEADER_LENGTH = 144
+    SECTOR_LENGTH = 512
+    EXPECTED_FILE_TYPE = "AESD"
+    SUPPORTED_EXTENSIONS = {".aesd", ".aesf"}
+    
+    # Cryptographic constants
+    KDF_ITERATIONS = 50000
+    PWD_ENCODING = "utf-8"
+    AES_KEY_SIZE = 32
+    XTS_KEY_SIZE = 64
+    INIT_VECTOR_SIZE = 12
+    
+    # Default values
+    DEFAULT_PASSWORD = "aesdformatguide"
+    
+    # Security
+    SECURE_DELETE_PASSES = 3
 
-#
-# --> Now analying the header
-#
 
-header_padding_length = int.from_bytes(decrypted_header[0:2], 'big')
-header_reserved_1     = decrypted_header[2:16]
-header_xts_key1       = decrypted_header[16:48]
-header_xts_key2       = decrypted_header[48:80]
+@dataclass
+class DecryptionStats:
+    """Statistics for decryption operation."""
+    
+    file_size: int = 0
+    decrypted_size: int = 0
+    sectors_processed: int = 0
+    start_time: float = 0.0
+    end_time: float = 0.0
+    
+    @property
+    def duration(self) -> float:
+        """Get decryption duration in seconds."""
+        return self.end_time - self.start_time
+    
+    @property
+    def throughput_mb_s(self) -> float:
+        """Get throughput in MB/s."""
+        if self.duration <= 0:
+            return 0.0
+        return (self.decrypted_size / (1024 * 1024)) / self.duration
 
-helper.print_parameter("Padding length", header_padding_length)
-helper.print_parameter("XTS AES key #1", header_xts_key1.hex())
-helper.print_parameter("XTS AES key #2", header_xts_key2.hex())
 
-file_length = file_stats.st_size - HEADER_LENGTH - header_padding_length
-helper.print_parameter("Expected data length", file_length)
-
-print("-"*72)
-print()
-
-# -----------------------------------------------------------------
-#
-#  Data file decryption (with the XTS-AES key)
-#
-# -----------------------------------------------------------------
-
-#
-#  Algo: AES
-#  Mode: XTS (https://cryptography.io/en/latest/hazmat/primitives/symmetric-encryption/#cryptography.hazmat.primitives.ciphers.modes.XTS)
-#  Block size: 512 bytes
-#
-#  Data is padded with 0x00 if needed (cf. padding_length)
-#
-
-print("Start decrypting...")
-print("-"*72)
-print()
-
-"""
-    Execution time, for information
-"""    
-t0 = time.time()
-
-"""
-    Decrypts all the blocks
-"""
-
-f_out = open(new_filename, "wb")   # Yes, we overwrite the output file
-
-backend = default_backend()
-
-xts_key = header_xts_key1 + header_xts_key2
-
-# Remember: we already read the first 144 bytes!
-
-current_sector_offset = 0
-byte_offset = 0
-decrypted = ""
-
-while True:
-
-    chunk = f_in.read(SECTOR_LENGTH)
-    len_chunk = len(chunk)
-    tweak = current_sector_offset.to_bytes(16, 'little')
-
-    if chunk:
+class AESDataFile:
+    """Represents an AES Drive encrypted file with parsing capabilities."""
+    
+    def __init__(self, header_data: bytes):
+        """
+        Initialize AES data file from header.
         
-        decryptor_xts = Cipher(algorithms.AES(xts_key), modes.XTS(tweak)).decryptor()
-        decrypted_chunk = decryptor_xts.update(chunk)
-        #print(bytes_decrypted.hex())
+        Args:
+            header_data: Raw header bytes (144 bytes expected)
+            
+        Raises:
+            ValueError: If header is invalid
+        """
+        if len(header_data) != Config.HEADER_LENGTH:
+            raise ValueError(f"Invalid header length: {len(header_data)}, expected {Config.HEADER_LENGTH}")
+        
+        self.raw_header = header_data
+        self._parse_header()
+        self._verify_checksum()
+    
+    def _parse_header(self) -> None:
+        """Parse the file header into components."""
+        h = self.raw_header
+        
+        # Parse header fields
+        self.file_type = h[0:4].decode("utf-8")
+        self.file_type_version = h[4]
+        self.reserved_1 = h[5:12]
+        self.crc32_checksum = h[12:16]
+        self.global_salt = h[16:32]
+        self.file_salt = h[32:48]
+        self.aes_gcm_header = h[48:128]
+        self.aes_gcm_auth_tag = h[128:144]
+        
+        # Validate file type
+        if self.file_type != Config.EXPECTED_FILE_TYPE:
+            raise ValueError(f"Invalid file type: {self.file_type}, expected {Config.EXPECTED_FILE_TYPE}")
+    
+    def _verify_checksum(self) -> None:
+        """Verify header CRC32 checksum."""
+        import binascii
+        
+        # Create header copy with zeroed checksum for verification
+        header_copy = (self.raw_header[0:12] + 
+                      b'\x00\x00\x00\x00' + 
+                      self.raw_header[16:144])
+        
+        calculated_crc = binascii.crc32(header_copy)
+        expected_crc = int.from_bytes(self.crc32_checksum, 'big', signed=True)
+        
+        if calculated_crc != expected_crc:
+            raise ValueError("Header CRC32 checksum verification failed")
 
-        byte_offset = byte_offset + SECTOR_LENGTH
 
-        if (byte_offset > file_length):
-            # End of data!
-            last_block_length = file_length % SECTOR_LENGTH
-            f_out.write(decrypted_chunk[0:last_block_length])
-            break
-        else:
-            f_out.write(decrypted_chunk)
-
-        # Next sector
-        current_sector_offset = current_sector_offset + 1 
-
-    else:
-        break
-
-# EOF *2
-# -----
-
-f_in.close()
-f_out.close()
-
-print(decrypted)
-print('-'*72)
+class SecureMemory:
+    """Utility class for secure memory operations."""
+    
+    @staticmethod
+    def secure_zero(data: bytearray) -> None:
+        """Securely zero out memory."""
+        if isinstance(data, bytearray):
+            for i in range(len(data)):
+                data[i] = 0
+    
+    @staticmethod
+    @contextmanager
+    def secure_bytes(size: int):
+        """Context manager for secure byte arrays."""
+        data = bytearray(size)
+        try:
+            yield data
+        finally:
+            SecureMemory.secure_zero(data)
 
 
-"""
-    Execution time, for information
-"""    
-execution_time = time.time() - t0
+class AESDecryptorError(Exception):
+    """Base exception for AES Decryptor errors."""
+    pass
 
-print("File decrypted in {:.2f} seconds".format(execution_time))
 
-print()
-print("-"*72)
-print("End of decrypting...")
-print("="*72)
+class InvalidPasswordError(AESDecryptorError):
+    """Raised when password is incorrect."""
+    pass
+
+
+class FileFormatError(AESDecryptorError):
+    """Raised when file format is invalid."""
+    pass
+
+
+class AESDecryptor:
+    """Professional AES Drive decryptor with comprehensive error handling."""
+    
+    def __init__(self, verbose: bool = False, progress: bool = True):
+        """
+        Initialize AES Decryptor.
+        
+        Args:
+            verbose: Enable verbose logging
+            progress: Show progress bar during decryption
+        """
+        self.verbose = verbose
+        self.progress = progress and HAS_TQDM
+        self.logger = self._setup_logging()
+        
+    def _setup_logging(self) -> logging.Logger:
+        """Setup logging configuration."""
+        logger = logging.getLogger(__name__)
+        
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+        
+        logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
+        return logger
+    
+    def _colorize(self, text: str, color: str = "") -> str:
+        """Add color to text if colorama is available."""
+        if not HAS_COLORAMA:
+            return text
+        
+        color_map = {
+            "red": Fore.RED,
+            "green": Fore.GREEN,
+            "yellow": Fore.YELLOW,
+            "blue": Fore.BLUE,
+            "cyan": Fore.CYAN,
+            "white": Fore.WHITE,
+            "reset": Style.RESET_ALL
+        }
+        
+        return f"{color_map.get(color, '')}{text}{Style.RESET_ALL}"
+    
+    def _validate_input_file(self, filepath: Path) -> None:
+        """
+        Validate input file.
+        
+        Args:
+            filepath: Path to input file
+            
+        Raises:
+            FileFormatError: If file format is invalid
+            FileNotFoundError: If file doesn't exist
+        """
+        if not filepath.exists():
+            raise FileNotFoundError(f"File not found: {filepath}")
+        
+        if filepath.suffix.lower() not in Config.SUPPORTED_EXTENSIONS:
+            raise FileFormatError(
+                f"Unsupported file extension: {filepath.suffix}. "
+                f"Supported: {', '.join(Config.SUPPORTED_EXTENSIONS)}"
+            )
+        
+        if filepath.stat().st_size < Config.HEADER_LENGTH:
+            raise FileFormatError("File too small to contain valid header")
+    
+    def _derive_keys(self, password: str, data_file: AESDataFile) -> Tuple[bytes, bytes]:
+        """
+        Derive encryption keys from password and file salts.
+        
+        Args:
+            password: User password
+            data_file: Parsed AES data file
+            
+        Returns:
+            Tuple of (header_encryption_key, init_vector)
+        """
+        self.logger.debug("Deriving keys from password")
+        
+        # Derive password-based key
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA512(),
+            length=Config.AES_KEY_SIZE,
+            salt=data_file.global_salt,
+            iterations=Config.KDF_ITERATIONS,
+            backend=default_backend()
+        )
+        
+        pwd_derived_key = kdf.derive(password.encode(Config.PWD_ENCODING))
+        
+        # Create file seed (salt + derived key)
+        file_seed = data_file.file_salt + pwd_derived_key
+        
+        # Generate file key hash
+        file_key_hash = hashlib.sha512(file_seed).digest()
+        
+        # Extract keys
+        header_encryption_key = file_key_hash[:Config.AES_KEY_SIZE]
+        init_vector = file_key_hash[Config.AES_KEY_SIZE:Config.AES_KEY_SIZE + Config.INIT_VECTOR_SIZE]
+        
+        return header_encryption_key, init_vector
+    
+    def _decrypt_header(self, data_file: AESDataFile, header_key: bytes, iv: bytes) -> bytes:
+        """
+        Decrypt the file header.
+        
+        Args:
+            data_file: Parsed AES data file
+            header_key: Header encryption key
+            iv: Initialization vector
+            
+        Returns:
+            Decrypted header data
+            
+        Raises:
+            InvalidPasswordError: If password is incorrect
+        """
+        self.logger.debug("Decrypting file header")
+        
+        try:
+            aesgcm = AESGCM(header_key)
+            encrypted_msg = data_file.aes_gcm_header + data_file.aes_gcm_auth_tag
+            return aesgcm.decrypt(iv, encrypted_msg, None)
+        except InvalidTag:
+            raise InvalidPasswordError("Invalid password or corrupted file")
+    
+    def _extract_xts_keys(self, decrypted_header: bytes) -> Tuple[bytes, int]:
+        """
+        Extract XTS keys and padding length from decrypted header.
+        
+        Args:
+            decrypted_header: Decrypted header data
+            
+        Returns:
+            Tuple of (combined_xts_key, padding_length)
+        """
+        padding_length = int.from_bytes(decrypted_header[0:2], 'big')
+        xts_key1 = decrypted_header[16:48]
+        xts_key2 = decrypted_header[48:80]
+        
+        combined_xts_key = xts_key1 + xts_key2
+        
+        self.logger.debug(f"Extracted XTS keys, padding length: {padding_length}")
+        return combined_xts_key, padding_length
+    
+    def _decrypt_file_data(self, input_file: BinaryIO, output_file: BinaryIO, 
+                          xts_key: bytes, file_length: int) -> DecryptionStats:
+        """
+        Decrypt file data using XTS-AES.
+        
+        Args:
+            input_file: Input file handle
+            output_file: Output file handle  
+            xts_key: XTS encryption key
+            file_length: Expected decrypted file length
+            
+        Returns:
+            Decryption statistics
+        """
+        stats = DecryptionStats()
+        stats.start_time = time.time()
+        
+        # Calculate total sectors for progress bar
+        total_sectors = (file_length + Config.SECTOR_LENGTH - 1) // Config.SECTOR_LENGTH
+        
+        # Setup progress bar if available
+        progress_bar = None
+        if self.progress:
+            progress_bar = tqdm(
+                total=total_sectors,
+                unit='sectors',
+                desc='Decrypting',
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} sectors [{elapsed}<{remaining}, {rate_fmt}]'
+            )
+        
+        current_sector = 0
+        bytes_written = 0
+        
+        try:
+            while bytes_written < file_length:
+                # Read sector
+                chunk = input_file.read(Config.SECTOR_LENGTH)
+                if not chunk:
+                    break
+                
+                # Prepare tweak for XTS mode
+                tweak = current_sector.to_bytes(16, 'little')
+                
+                # Decrypt sector
+                decryptor = Cipher(
+                    algorithms.AES(xts_key), 
+                    modes.XTS(tweak)
+                ).decryptor()
+                
+                decrypted_chunk = decryptor.update(chunk) + decryptor.finalize()
+                
+                # Write appropriate amount of data
+                remaining_bytes = file_length - bytes_written
+                bytes_to_write = min(len(decrypted_chunk), remaining_bytes)
+                
+                output_file.write(decrypted_chunk[:bytes_to_write])
+                bytes_written += bytes_to_write
+                
+                # Update statistics
+                stats.sectors_processed += 1
+                current_sector += 1
+                
+                # Update progress bar
+                if progress_bar:
+                    progress_bar.update(1)
+        
+        finally:
+            if progress_bar:
+                progress_bar.close()
+        
+        stats.end_time = time.time()
+        stats.decrypted_size = bytes_written
+        
+        return stats
+    
+    def decrypt_file(self, input_path: Path, output_path: Optional[Path] = None, 
+                    password: Optional[str] = None) -> DecryptionStats:
+        """
+        Decrypt an AES Drive encrypted file.
+        
+        Args:
+            input_path: Path to encrypted file
+            output_path: Path for decrypted file (auto-generated if None)
+            password: Decryption password (prompted if None)
+            
+        Returns:
+            Decryption statistics
+            
+        Raises:
+            Various AESDecryptorError subclasses for different error conditions
+        """
+        # Validate input
+        self._validate_input_file(input_path)
+        
+        # Determine output path
+        if output_path is None:
+            output_path = input_path.with_suffix('')
+        
+        # Get password if not provided
+        if password is None:
+            password = getpass.getpass("AES Drive password: ") or Config.DEFAULT_PASSWORD
+        
+        self.logger.info(f"Decrypting {input_path} -> {output_path}")
+        
+        try:
+            with open(input_path, 'rb') as input_file:
+                # Read and parse header
+                header_data = input_file.read(Config.HEADER_LENGTH)
+                data_file = AESDataFile(header_data)
+                
+                # Derive keys
+                header_key, iv = self._derive_keys(password, data_file)
+                
+                # Clear password from memory
+                password = None
+                
+                # Decrypt header
+                decrypted_header = self._decrypt_header(data_file, header_key, iv)
+                
+                # Extract XTS keys
+                xts_key, padding_length = self._extract_xts_keys(decrypted_header)
+                
+                # Calculate actual file length
+                file_size = input_path.stat().st_size
+                file_length = file_size - Config.HEADER_LENGTH - padding_length
+                
+                self.logger.info(f"File size: {file_size}, Data length: {file_length}")
+                
+                # Decrypt file data
+                with open(output_path, 'wb') as output_file:
+                    stats = self._decrypt_file_data(input_file, output_file, xts_key, file_length)
+                
+                stats.file_size = file_size
+                
+                # Log completion
+                self.logger.info(
+                    f"Decryption completed in {stats.duration:.2f}s "
+                    f"({stats.throughput_mb_s:.2f} MB/s)"
+                )
+                
+                return stats
+                
+        except Exception as e:
+            # Clean up output file on error
+            if output_path.exists():
+                try:
+                    output_path.unlink()
+                except OSError:
+                    pass
+            raise
+
+
+def create_argument_parser() -> argparse.ArgumentParser:
+    """Create command line argument parser."""
+    parser = argparse.ArgumentParser(
+        description="Professional AES Drive Decryptor",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s document.pdf.aesd
+  %(prog)s file.aesd -o decrypted.pdf -p mypassword
+  %(prog)s file.aesd --verbose --no-progress
+        """
+    )
+    
+    parser.add_argument(
+        'input_file',
+        type=Path,
+        help='Encrypted file to decrypt (.aesd or .aesf)'
+    )
+    
+    parser.add_argument(
+        '-o', '--output',
+        type=Path,
+        help='Output file path (auto-generated if not specified)'
+    )
+    
+    parser.add_argument(
+        '-p', '--password',
+        help='Decryption password (prompted if not provided)'
+    )
+    
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Enable verbose logging'
+    )
+    
+    parser.add_argument(
+        '--no-progress',
+        action='store_true',
+        help='Disable progress bar'
+    )
+    
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='AES Drive Decryptor 2.0.0'
+    )
+    
+    return parser
+
+
+def main() -> int:
+    """Main entry point."""
+    parser = create_argument_parser()
+    args = parser.parse_args()
+    
+    # Create decryptor
+    decryptor = AESDecryptor(
+        verbose=args.verbose,
+        progress=not args.no_progress
+    )
+    
+    try:
+        # Perform decryption
+        stats = decryptor.decrypt_file(
+            input_path=args.input_file,
+            output_path=args.output,
+            password=args.password
+        )
+        
+        # Print summary
+        print(f"\n{decryptor._colorize('✓ Decryption completed successfully!', 'green')}")
+        print(f"File size: {stats.file_size:,} bytes")
+        print(f"Decrypted: {stats.decrypted_size:,} bytes")
+        print(f"Duration: {stats.duration:.2f} seconds")
+        print(f"Throughput: {stats.throughput_mb_s:.2f} MB/s")
+        
+        return 0
+        
+    except KeyboardInterrupt:
+        print(f"\n{decryptor._colorize('⏹ Operation cancelled by user', 'yellow')}")
+        return 1
+        
+    except AESDecryptorError as e:
+        print(f"{decryptor._colorize('❌ Error:', 'red')} {e}")
+        return 1
+        
+    except Exception as e:
+        print(f"{decryptor._colorize('❌ Unexpected error:', 'red')} {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())
