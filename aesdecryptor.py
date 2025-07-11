@@ -6,7 +6,7 @@ A robust, professional-grade tool for decrypting AES Drive encrypted files.
 Supports .aesd and .aesf file formats with comprehensive error handling,
 logging, and security features.
 
-Author: Jean GEBAROWSKI
+Author: Your Name
 License: MIT
 Version: 2.0.0
 """
@@ -33,19 +33,18 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidTag
 
 # Third-party imports
+# Local imports
+from utils import (
+    ColorFormatter, ParameterFormatter, FileValidator, 
+    SecureUtils, LoggingUtils, format_bytes, format_duration,
+    SecureMemory
+)
+
 try:
     from tqdm import tqdm
     HAS_TQDM = True
 except ImportError:
     HAS_TQDM = False
-
-try:
-    import colorama
-    from colorama import Fore, Style
-    colorama.init()
-    HAS_COLORAMA = True
-except ImportError:
-    HAS_COLORAMA = False
 
 
 # Constants
@@ -149,25 +148,7 @@ class AESDataFile:
             raise ValueError("Header CRC32 checksum verification failed")
 
 
-class SecureMemory:
-    """Utility class for secure memory operations."""
-    
-    @staticmethod
-    def secure_zero(data: bytearray) -> None:
-        """Securely zero out memory."""
-        if isinstance(data, bytearray):
-            for i in range(len(data)):
-                data[i] = 0
-    
-    @staticmethod
-    @contextmanager
-    def secure_bytes(size: int):
-        """Context manager for secure byte arrays."""
-        data = bytearray(size)
-        try:
-            yield data
-        finally:
-            SecureMemory.secure_zero(data)
+# SecureMemory is now imported from utils
 
 
 class AESDecryptorError(Exception):
@@ -198,39 +179,10 @@ class AESDecryptor:
         """
         self.verbose = verbose
         self.progress = progress and HAS_TQDM
-        self.logger = self._setup_logging()
-        
-    def _setup_logging(self) -> logging.Logger:
-        """Setup logging configuration."""
-        logger = logging.getLogger(__name__)
-        
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-        
-        logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
-        return logger
-    
-    def _colorize(self, text: str, color: str = "") -> str:
-        """Add color to text if colorama is available."""
-        if not HAS_COLORAMA:
-            return text
-        
-        color_map = {
-            "red": Fore.RED,
-            "green": Fore.GREEN,
-            "yellow": Fore.YELLOW,
-            "blue": Fore.BLUE,
-            "cyan": Fore.CYAN,
-            "white": Fore.WHITE,
-            "reset": Style.RESET_ALL
-        }
-        
-        return f"{color_map.get(color, '')}{text}{Style.RESET_ALL}"
+        self.logger = LoggingUtils.setup_logger(__name__, 
+                                              logging.DEBUG if verbose else logging.INFO)
+        self.color_formatter = ColorFormatter()
+        self.param_formatter = ParameterFormatter(self.color_formatter)
     
     def _validate_input_file(self, filepath: Path) -> None:
         """
@@ -243,16 +195,15 @@ class AESDecryptor:
             FileFormatError: If file format is invalid
             FileNotFoundError: If file doesn't exist
         """
-        if not filepath.exists():
-            raise FileNotFoundError(f"File not found: {filepath}")
+        FileValidator.validate_path(filepath, must_exist=True)
         
-        if filepath.suffix.lower() not in Config.SUPPORTED_EXTENSIONS:
+        if not FileValidator.validate_file_extension(filepath, Config.SUPPORTED_EXTENSIONS):
             raise FileFormatError(
                 f"Unsupported file extension: {filepath.suffix}. "
                 f"Supported: {', '.join(Config.SUPPORTED_EXTENSIONS)}"
             )
         
-        if filepath.stat().st_size < Config.HEADER_LENGTH:
+        if not FileValidator.validate_file_size(filepath, min_size=Config.HEADER_LENGTH):
             raise FileFormatError("File too small to contain valid header")
     
     def _derive_keys(self, password: str, data_file: AESDataFile) -> Tuple[bytes, bytes]:
@@ -557,24 +508,27 @@ def main() -> int:
         )
         
         # Print summary
-        print(f"\n{decryptor._colorize('✓ Decryption completed successfully!', 'green')}")
-        print(f"File size: {stats.file_size:,} bytes")
-        print(f"Decrypted: {stats.decrypted_size:,} bytes")
-        print(f"Duration: {stats.duration:.2f} seconds")
+        print(f"\n{self.color_formatter.success('Decryption completed successfully!')}")
+        print(f"File size: {format_bytes(stats.file_size)}")
+        print(f"Decrypted: {format_bytes(stats.decrypted_size)}")
+        print(f"Duration: {format_duration(stats.duration)}")
         print(f"Throughput: {stats.throughput_mb_s:.2f} MB/s")
         
         return 0
         
     except KeyboardInterrupt:
-        print(f"\n{decryptor._colorize('⏹ Operation cancelled by user', 'yellow')}")
+        color_formatter = ColorFormatter()
+        print(f"\n{color_formatter.warning('Operation cancelled by user')}")
         return 1
         
     except AESDecryptorError as e:
-        print(f"{decryptor._colorize('❌ Error:', 'red')} {e}")
+        color_formatter = ColorFormatter()
+        print(f"{color_formatter.error(str(e))}")
         return 1
         
     except Exception as e:
-        print(f"{decryptor._colorize('❌ Unexpected error:', 'red')} {e}")
+        color_formatter = ColorFormatter()
+        print(f"{color_formatter.error(f'Unexpected error: {e}')}")
         if args.verbose:
             import traceback
             traceback.print_exc()
