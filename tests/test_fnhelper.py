@@ -14,7 +14,7 @@ from unittest.mock import patch
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from res.fnhelper_improved import check_arguments
+from res.fnhelper import check_arguments
 
 
 class TestFnHelper(unittest.TestCase):
