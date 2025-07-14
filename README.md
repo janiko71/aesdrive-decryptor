@@ -1,6 +1,6 @@
 # AES Drive Decryptor
 
-> 📖 **Navigation :** **README** | [Guide d'Utilisation](USAGE.md) | [Améliorations](IMPROVEMENTS.md) | [Sécurité](SECURITY.md) | [📚 Index](DOCS.md)
+> 📖 **Navigation :** **README** | [Guide d'Utilisation](docs/USAGE.md) | [Sécurité](docs/SECURITY.md) | [📚 Documentation](docs/)
 
 🔐 **Implémentation Python non officielle pour déchiffrer les fichiers chiffrés AES Drive**
 
@@ -46,7 +46,7 @@ Ce projet fournit une implémentation Python pour déchiffrer des fichiers indiv
 
 3. **Valider l'installation:**
    ```bash
-   python validate_setup.py
+   python tests/test_setup.py
    ```
 
 4. **Activer l'environnement virtuel:**
@@ -87,7 +87,7 @@ python aesdecryptor.py fichier_chiffre.aesf -p votre_mot_de_passe
 python aesdecryptor.py --help
 ```
 
-> 📖 **Pour des exemples détaillés et le dépannage, consultez le [Guide d'Utilisation](USAGE.md)**
+> 📖 **Pour des exemples détaillés et le dépannage, consultez le [Guide d'Utilisation](docs/USAGE.md)**
 
 ## 📁 Structure du Projet
 
@@ -135,7 +135,7 @@ La structure du fichier chiffré:
 2. **Données**: Contenu du fichier chiffré XTS-AES
 3. **Padding**: Octets de padding optionnels
 
-> 🔒 **Pour les détails sur la sécurité mémoire et la protection des données sensibles, voir [SECURITY.md](SECURITY.md)**
+> 🔒 **Pour les détails sur la sécurité mémoire et la protection des données sensibles, voir [SECURITY.md](docs/SECURITY.md)**
 
 ## 🛠️ Développement
 
@@ -149,7 +149,7 @@ Ce projet suit les meilleures pratiques Python:
 - **Gestion d'erreurs** avec exceptions appropriées
 - **Conception modulaire** avec séparation claire des préoccupations
 
-> 📋 **Pour voir les détails des améliorations apportées au code, consultez [IMPROVEMENTS.md](IMPROVEMENTS.md)**
+> 📋 **Pour voir les détails des améliorations apportées au code, consultez la [documentation](docs/)**
 
 ## 📄 Licence
 
@@ -161,24 +161,23 @@ Ce programme est à des **fins éducatives et de recherche uniquement**. Aucune 
 
 ## 📚 Documentation
 
-> 🗺️ **[Index Complet de la Documentation](DOCS.md)** - Navigation rapide vers tous les documents
+> 🗺️ **[Documentation Complète](docs/)** - Navigation rapide vers tous les documents
 
 ### Documents Principaux
-- **[Guide d'Utilisation](USAGE.md)** - Exemples détaillés et dépannage
-- **[Améliorations du Code](IMPROVEMENTS.md)** - Détails des refactorisations apportées
-- **[Sécurité Mémoire](SECURITY.md)** - Protection des données cryptographiques
+- **[Guide d'Utilisation](docs/USAGE.md)** - Exemples détaillés et dépannage
+- **[Sécurité Mémoire](docs/SECURITY.md)** - Protection des données cryptographiques
 
 ### Outils
-- **[Script de Validation](validate_setup.py)** - Vérification de l'installation
+- **[Script de Validation](tests/test_setup.py)** - Vérification de l'installation
 
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues! N'hésitez pas à soumettre une Pull Request.
 
 Avant de contribuer:
-1. Consultez [IMPROVEMENTS.md](IMPROVEMENTS.md) pour comprendre l'architecture
-2. Respectez les pratiques de [sécurité mémoire](SECURITY.md)
-3. Testez avec `python validate_setup.py`
+1. Consultez la [documentation](docs/) pour comprendre l'architecture
+2. Respectez les pratiques de [sécurité mémoire](docs/SECURITY.md)
+3. Testez avec `python tests/test_setup.py`
 
 ## 📚 Références Externes
 

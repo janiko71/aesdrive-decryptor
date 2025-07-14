@@ -1,6 +1,6 @@
 # Guide d'Utilisation - AES Drive Decryptor
 
-> 📖 **Navigation :** [README](README.md) | **Guide d'Utilisation** | [Améliorations](IMPROVEMENTS.md) | [Sécurité](SECURITY.md)
+> 📖 **Navigation :** [README](../README.md) | **Guide d'Utilisation** | [Sécurité](SECURITY.md)
 
 Ce guide fournit des instructions détaillées pour installer et utiliser AES Drive Decryptor.
 
@@ -176,7 +176,7 @@ python validate_setup.py
 ### Problème : Permissions insuffisantes
 **Solution :** Exécutez avec les permissions appropriées ou changez le répertoire de sortie
 
-> 🔧 **Pour plus de détails techniques, consultez [IMPROVEMENTS.md](IMPROVEMENTS.md)**
+> 🔧 **Pour plus de détails techniques, consultez le [README](../README.md)**
 
 ## 📁 Structure des Fichiers de Sortie
 
@@ -204,13 +204,12 @@ Après : video.mp4
 
 Pour signaler des problèmes ou demander de l'aide :
 1. Vérifiez d'abord ce guide de dépannage
-2. Consultez le [README.md](README.md) principal
-3. Exécutez `python validate_setup.py` pour diagnostiquer l'installation
-4. Consultez les [améliorations du code](IMPROVEMENTS.md) pour comprendre l'architecture
+2. Consultez le [README.md](../README.md) principal
+3. Exécutez `python tests/test_setup.py` pour diagnostiquer l'installation
+4. Consultez le [README](../README.md) pour comprendre l'architecture
 5. Vérifiez les issues existantes dans le projet
 
 ## 📚 Voir Aussi
 
-- **[README.md](README.md)** - Vue d'ensemble du projet
-- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Détails techniques des améliorations
+- **[README.md](../README.md)** - Vue d'ensemble du projet
 - **[SECURITY.md](SECURITY.md)** - Mesures de sécurité mémoire

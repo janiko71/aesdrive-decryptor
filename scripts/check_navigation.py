@@ -71,10 +71,8 @@ def main():
     # Fichiers à vérifier
     files_to_check = [
         'README.md',
-        'USAGE.md', 
-        'IMPROVEMENTS.md',
-        'SECURITY.md',
-        'DOCS.md',
+        'docs/USAGE.md', 
+        'docs/SECURITY.md',
         'TOC.md'
     ]
     
@@ -90,10 +88,8 @@ def main():
         print("🎉 Toute la navigation fonctionne correctement!")
         print("\n📋 Résumé de la navigation:")
         print("   • README.md - Point d'entrée avec navigation complète")
-        print("   • USAGE.md - Guide avec liens contextuels")
-        print("   • IMPROVEMENTS.md - Détails techniques avec références")
-        print("   • SECURITY.md - Sécurité avec liens vers autres docs")
-        print("   • DOCS.md - Index central de navigation")
+        print("   • docs/USAGE.md - Guide avec liens contextuels")
+        print("   • docs/SECURITY.md - Sécurité avec liens vers autres docs")
         print("   • TOC.md - Table des matières technique")
         return 0
     else:

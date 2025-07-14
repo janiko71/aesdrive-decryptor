@@ -1,12 +1,12 @@
 # Sécurité Mémoire - AES Drive Decryptor
 
-> 📖 **Navigation :** [README](README.md) | [Guide d'Utilisation](USAGE.md) | [Améliorations](IMPROVEMENTS.md) | **Sécurité**
+> 📖 **Navigation :** [README](../README.md) | [Guide d'Utilisation](USAGE.md) | **Sécurité**
 
 ## 🔒 Gestion Sécurisée de la Mémoire
 
 Ce document décrit les mesures de sécurité mémoire implémentées dans AES Drive Decryptor pour protéger les données cryptographiques sensibles.
 
-> 🏗️ **Architecture :** Pour comprendre la structure générale du code, consultez [IMPROVEMENTS.md](IMPROVEMENTS.md)
+> 🏗️ **Architecture :** Pour comprendre la structure générale du code, consultez le [README](../README.md)
 
 ## 🎯 Problématiques de Sécurité Mémoire
 
@@ -261,10 +261,9 @@ Ces mesures réduisent significativement les risques de compromission des donné
 
 ## 📚 Voir Aussi
 
-- **[README.md](README.md)** - Vue d'ensemble du projet et installation
+- **[README.md](../README.md)** - Vue d'ensemble du projet et installation
 - **[USAGE.md](USAGE.md)** - Guide d'utilisation avec exemples pratiques
-- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Détails des améliorations architecturales
-- **[validate_setup.py](validate_setup.py)** - Validation de l'environnement de sécurité
+- **[tests/test_setup.py](../tests/test_setup.py)** - Validation de l'environnement de sécurité
 
 ## 🔗 Références de Sécurité
 
