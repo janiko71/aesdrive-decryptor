@@ -1,8 +1,12 @@
 # Sécurité Mémoire - AES Drive Decryptor
 
+> 📖 **Navigation :** [README](README.md) | [Guide d'Utilisation](USAGE.md) | [Améliorations](IMPROVEMENTS.md) | **Sécurité**
+
 ## 🔒 Gestion Sécurisée de la Mémoire
 
 Ce document décrit les mesures de sécurité mémoire implémentées dans AES Drive Decryptor pour protéger les données cryptographiques sensibles.
+
+> 🏗️ **Architecture :** Pour comprendre la structure générale du code, consultez [IMPROVEMENTS.md](IMPROVEMENTS.md)
 
 ## 🎯 Problématiques de Sécurité Mémoire
 
@@ -254,3 +258,17 @@ Les améliorations de sécurité mémoire implémentées offrent :
 - ✅ **Conformité sécuritaire** : Bonnes pratiques cryptographiques
 
 Ces mesures réduisent significativement les risques de compromission des données sensibles par analyse mémoire, tout en maintenant la fonctionnalité et les performances du programme.
+
+## 📚 Voir Aussi
+
+- **[README.md](README.md)** - Vue d'ensemble du projet et installation
+- **[USAGE.md](USAGE.md)** - Guide d'utilisation avec exemples pratiques
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Détails des améliorations architecturales
+- **[validate_setup.py](validate_setup.py)** - Validation de l'environnement de sécurité
+
+## 🔗 Références de Sécurité
+
+- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)
+- [Python Cryptography Library - Best Practices](https://cryptography.io/en/latest/faq/#why-pyca-cryptography)
+- [Memory Security in Cryptographic Applications](https://tools.ietf.org/html/rfc8018)
+- [Secure Coding Practices for Python](https://wiki.python.org/moin/SecureCoding)

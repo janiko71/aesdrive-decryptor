@@ -144,6 +144,10 @@ def main():
         print("   1. Activez l'environnement virtuel si ce n'est pas fait")
         print("   2. Utilisez: python aesdecryptor.py [fichier.aesd] [options]")
         print("   3. Consultez USAGE.md pour plus d'exemples")
+        print("\n📚 Documentation disponible:")
+        print("   • README.md - Vue d'ensemble")
+        print("   • USAGE.md - Guide d'utilisation")
+        print("   • DOCS.md - Index complet de la documentation")
         return 0
     else:
         print("⚠️ Problèmes détectés dans l'installation.")
@@ -152,6 +156,7 @@ def main():
             print("   1. Vérifiez que Python 3.8+ est installé")
             print("   2. Exécutez: pip install -r requirements.txt")
         print("   3. Consultez README.md pour l'installation complète")
+        print("   4. Voir USAGE.md section Dépannage pour plus d'aide")
         return 1
 
 

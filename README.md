@@ -41,7 +41,12 @@ Ce projet fournit une implémentation Python pour déchiffrer des fichiers indiv
    ./setup_venv.sh
    ```
 
-3. **Activer l'environnement virtuel:**
+3. **Valider l'installation:**
+   ```bash
+   python validate_setup.py
+   ```
+
+4. **Activer l'environnement virtuel:**
    
    **Windows:**
    ```cmd
@@ -69,6 +74,8 @@ python aesdecryptor.py fichier_chiffre.aesd -p votre_mot_de_passe
 ```bash
 python aesdecryptor.py --help
 ```
+
+> 📖 **Pour des exemples détaillés et le dépannage, consultez le [Guide d'Utilisation](USAGE.md)**
 
 ## 📁 Structure du Projet
 
@@ -103,6 +110,8 @@ La structure du fichier chiffré:
 2. **Données**: Contenu du fichier chiffré XTS-AES
 3. **Padding**: Octets de padding optionnels
 
+> 🔒 **Pour les détails sur la sécurité mémoire et la protection des données sensibles, voir [SECURITY.md](SECURITY.md)**
+
 ## 🛠️ Développement
 
 ### Qualité du Code
@@ -115,6 +124,8 @@ Ce projet suit les meilleures pratiques Python:
 - **Gestion d'erreurs** avec exceptions appropriées
 - **Conception modulaire** avec séparation claire des préoccupations
 
+> 📋 **Pour voir les détails des améliorations apportées au code, consultez [IMPROVEMENTS.md](IMPROVEMENTS.md)**
+
 ## 📄 Licence
 
 Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour les détails.
@@ -123,11 +134,28 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour les dé
 
 Ce programme est à des **fins éducatives et de recherche uniquement**. Aucune garantie d'aucune sorte n'est fournie. Utilisez à vos propres risques.
 
+## 📚 Documentation
+
+> 🗺️ **[Index Complet de la Documentation](DOCS.md)** - Navigation rapide vers tous les documents
+
+### Documents Principaux
+- **[Guide d'Utilisation](USAGE.md)** - Exemples détaillés et dépannage
+- **[Améliorations du Code](IMPROVEMENTS.md)** - Détails des refactorisations apportées
+- **[Sécurité Mémoire](SECURITY.md)** - Protection des données cryptographiques
+
+### Outils
+- **[Script de Validation](validate_setup.py)** - Vérification de l'installation
+
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues! N'hésitez pas à soumettre une Pull Request.
 
-## 📚 Références
+Avant de contribuer:
+1. Consultez [IMPROVEMENTS.md](IMPROVEMENTS.md) pour comprendre l'architecture
+2. Respectez les pratiques de [sécurité mémoire](SECURITY.md)
+3. Testez avec `python validate_setup.py`
+
+## 📚 Références Externes
 
 - [Documentation du Format de Fichier AES Drive](https://cdn.nsoftware.com/help/NEH/app/nsoftware.AESDrive.htm#pg_aesdfileformat)
 - [Bibliothèque Cryptographique Python](https://cryptography.io/)

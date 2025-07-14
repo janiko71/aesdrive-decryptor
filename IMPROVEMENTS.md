@@ -1,7 +1,11 @@
 # Améliorations Apportées au Code AES Drive Decryptor
 
+> 📖 **Navigation :** [README](README.md) | [Guide d'Utilisation](USAGE.md) | **Améliorations** | [Sécurité](SECURITY.md)
+
 ## 🎯 Objectif
 Transformer le code original en une implémentation Python professionnelle respectant les meilleures pratiques de développement.
+
+> 🔒 **Note :** Les améliorations de sécurité mémoire sont détaillées dans [SECURITY.md](SECURITY.md)
 
 ## 📋 Améliorations Réalisées
 
@@ -189,6 +193,7 @@ if __name__ == "__main__":
 ### Fichiers de Configuration Ajoutés :
 - **`requirements.txt`** : Dépendances Python
 - **`setup_venv.bat`** : Configuration automatique de l'environnement virtuel (Windows)
+- **`validate_setup.py`** : Script de validation de l'installation
 - **`pyproject.toml`** : Configuration moderne du projet Python
 
 ### Gestion des Dépendances :
@@ -196,6 +201,8 @@ if __name__ == "__main__":
 cryptography>=41.0.0
 colorama>=0.4.6
 ```
+
+> 📖 **Pour l'utilisation pratique, consultez le [Guide d'Utilisation](USAGE.md)**
 
 ## 📊 Métriques d'Amélioration
 
@@ -219,3 +226,17 @@ Le code est maintenant :
 - ✅ **Extensible** : Architecture permettant l'ajout de fonctionnalités
 
 Cette transformation respecte les meilleures pratiques Python tout en conservant la fonctionnalité originale du déchiffrement AES Drive.
+
+## 📚 Voir Aussi
+
+- **[README.md](README.md)** - Vue d'ensemble et installation
+- **[USAGE.md](USAGE.md)** - Guide d'utilisation détaillé
+- **[SECURITY.md](SECURITY.md)** - Mesures de sécurité mémoire implémentées
+- **[validate_setup.py](validate_setup.py)** - Script de validation de l'installation
+
+## 🔗 Références Techniques
+
+- [PEP 8 - Style Guide for Python Code](https://peps.python.org/pep-0008/)
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+- [Python Type Hints](https://docs.python.org/3/library/typing.html)
+- [Cryptography Library Documentation](https://cryptography.io/)

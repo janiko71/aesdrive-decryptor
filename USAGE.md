@@ -1,5 +1,9 @@
 # Guide d'Utilisation - AES Drive Decryptor
 
+> 📖 **Navigation :** [README](README.md) | **Guide d'Utilisation** | [Améliorations](IMPROVEMENTS.md) | [Sécurité](SECURITY.md)
+
+Ce guide fournit des instructions détaillées pour installer et utiliser AES Drive Decryptor.
+
 ## 🚀 Installation Rapide
 
 ### 1. Configuration de l'Environnement Virtuel
@@ -150,8 +154,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Problème : Validation de l'installation
+**Solution :** Utilisez le script de validation
+```bash
+python validate_setup.py
+```
+
 ### Problème : Permissions insuffisantes
 **Solution :** Exécutez avec les permissions appropriées ou changez le répertoire de sortie
+
+> 🔧 **Pour plus de détails techniques, consultez [IMPROVEMENTS.md](IMPROVEMENTS.md)**
 
 ## 📁 Structure des Fichiers de Sortie
 
@@ -168,9 +180,19 @@ Après : document.pdf
 - La saisie de mot de passe est masquée dans le terminal
 - Aucune information sensible n'est écrite dans les logs
 
+> 🔒 **Pour les détails complets sur la sécurité mémoire, consultez [SECURITY.md](SECURITY.md)**
+
 ## 📞 Support
 
 Pour signaler des problèmes ou demander de l'aide :
 1. Vérifiez d'abord ce guide de dépannage
-2. Consultez le fichier README.md
-3. Vérifiez les issues existantes dans le projet
+2. Consultez le [README.md](README.md) principal
+3. Exécutez `python validate_setup.py` pour diagnostiquer l'installation
+4. Consultez les [améliorations du code](IMPROVEMENTS.md) pour comprendre l'architecture
+5. Vérifiez les issues existantes dans le projet
+
+## 📚 Voir Aussi
+
+- **[README.md](README.md)** - Vue d'ensemble du projet
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Détails techniques des améliorations
+- **[SECURITY.md](SECURITY.md)** - Mesures de sécurité mémoire
