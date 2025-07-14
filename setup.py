@@ -16,7 +16,8 @@ setup(
     description="Unofficial Python implementation to decrypt AES Drive encrypted files",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -27,12 +28,14 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
     python_requires=">=3.8",
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "aesdecryptor=aesdecryptor:main",
+            "aesdecryptor=aesdrive_decryptor.main:main",
         ],
     },
+    include_package_data=True,
 )

@@ -63,16 +63,22 @@ Ce projet fournit une implémentation Python pour déchiffrer des fichiers indiv
 
 ### Utilisation
 
-**Utilisation de base:**
+**Utilisation moderne (recommandée):**
+```bash
+python -m aesdrive_decryptor fichier_chiffre.aesd
+# ou
+python -m aesdrive_decryptor fichier_chiffre.aesf
+```
+
+**Utilisation de compatibilité:**
 ```bash
 python aesdecryptor.py fichier_chiffre.aesd
-# ou
 python aesdecryptor.py fichier_chiffre.aesf
 ```
 
 **Avec mot de passe en argument:**
 ```bash
-python aesdecryptor.py fichier_chiffre.aesd -p votre_mot_de_passe
+python -m aesdrive_decryptor fichier_chiffre.aesd -p votre_mot_de_passe
 python aesdecryptor.py fichier_chiffre.aesf -p votre_mot_de_passe
 ```
 
@@ -87,15 +93,28 @@ python aesdecryptor.py --help
 
 ```
 aesdrive-decryptor/
-├── aesdecryptor.py          # Application principale de déchiffrement
-├── compare_directories.py   # Utilitaire de comparaison de répertoires
-├── res/                     # Modules de ressources
+├── src/                     # Code source principal
+│   └── aesdrive_decryptor/  # Package principal
+│       ├── __init__.py      # Interface du package
+│       ├── main.py          # Point d'entrée principal
+│       ├── decryptor.py     # Logique de déchiffrement
+│       ├── constants.py     # Constantes
+│       └── security.py     # Gestion mémoire sécurisée
+├── tests/                   # Tests unitaires
+│   ├── test_extensions.py   # Tests des extensions
+│   └── test_setup.py        # Tests d'installation
+├── scripts/                 # Scripts utilitaires
+│   ├── setup_venv.py        # Configuration environnement
+│   ├── setup_venv.bat       # Script Windows
+│   └── setup_venv.sh        # Script Unix/Linux
+├── docs/                    # Documentation
+├── res/                     # Modules utilitaires (legacy)
 │   ├── __init__.py         # Initialisation du package
 │   ├── aesdatafile.py      # Classe DataFile pour analyser les en-têtes
 │   └── fnhelper.py         # Fonctions d'aide et utilitaires
+├── aesdecryptor.py          # Script de compatibilité
 ├── requirements.txt         # Dépendances de production
-├── setup_venv.bat          # Script de configuration d'environnement virtuel (Windows)
-├── setup_venv.sh           # Script de configuration d'environnement virtuel (Unix)
+├── setup.py                 # Configuration d'installation
 └── README.md               # Ce fichier
 ```
 

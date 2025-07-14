@@ -5,6 +5,10 @@ import sys
 import importlib.util
 from pathlib import Path
 
+# Ajouter le répertoire src au path pour les imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "src"))
+
 
 def check_python_version():
     """Vérifier la version de Python."""

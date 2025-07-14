@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include requirements.txt
+include aesdecryptor.py
+recursive-include docs *.md
+recursive-include scripts *.py *.bat *.sh
+recursive-include tests *.py
+recursive-include res *.py
+global-exclude __pycache__
+global-exclude *.py[co]

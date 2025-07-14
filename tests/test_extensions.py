@@ -5,10 +5,11 @@ import sys
 import os
 from pathlib import Path
 
-# Ajouter le répertoire courant au path pour les imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Ajouter le répertoire src au path pour les imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "src"))
 
-from aesdecryptor import AESDecryptor, SUPPORTED_EXTENSIONS
+from aesdrive_decryptor import AESDecryptor, SUPPORTED_EXTENSIONS
 
 
 def test_extension_validation():
@@ -119,8 +120,8 @@ def main():
         print("   • Validation des extensions: Fonctionnelle")
         print("   • Génération des noms de sortie: Correcte")
         print("\n💡 Utilisation:")
-        print("   python aesdecryptor.py fichier.aesd")
-        print("   python aesdecryptor.py fichier.aesf")
+        print("   python -m aesdrive_decryptor fichier.aesd")
+        print("   python -m aesdrive_decryptor fichier.aesf")
         
     except Exception as e:
         print(f"\n❌ Erreur lors des tests: {e}")
