@@ -6,8 +6,10 @@
 
 ## 📚 Documents Principaux
 
+> 🧭 **Tous les documents principaux incluent une barre de navigation complète en en-tête**
+
 ### 🚀 [README.md](README.md)
-**Vue d'ensemble du projet**
+**Vue d'ensemble du projet** *(Point d'entrée principal)*
 - Description et fonctionnalités
 - Installation rapide
 - Structure du projet
@@ -50,6 +52,12 @@ python validate_setup.py
 - **`setup_venv.bat`** (Windows) - Configuration automatique de l'environnement virtuel
 - **`setup_venv.sh`** (Unix/Linux) - Configuration automatique de l'environnement virtuel
 - **`requirements.txt`** - Liste des dépendances Python
+
+### 🔗 Scripts de Validation
+- **`check_navigation.py`** - Vérification des liens de navigation
+```bash
+python check_navigation.py
+```
 
 ## 🗺️ Navigation Rapide
 

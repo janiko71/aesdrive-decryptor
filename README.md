@@ -1,5 +1,7 @@
 # AES Drive Decryptor
 
+> 📖 **Navigation :** **README** | [Guide d'Utilisation](USAGE.md) | [Améliorations](IMPROVEMENTS.md) | [Sécurité](SECURITY.md) | [📚 Index](DOCS.md)
+
 🔐 **Implémentation Python non officielle pour déchiffrer les fichiers chiffrés AES Drive**
 
 Ce projet fournit une implémentation Python pour déchiffrer des fichiers individuels chiffrés de la solution AES Drive par /n Software. Il implémente la spécification du format de fichier AES Drive et utilise XTS-AES pour le déchiffrement des données.
