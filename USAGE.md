@@ -36,11 +36,14 @@ source venv/bin/activate
 ### Commande de Base
 ```bash
 python aesdecryptor.py fichier.aesd
+# ou pour les fichiers .aesf
+python aesdecryptor.py fichier.aesf
 ```
 
 ### Avec Mot de Passe en Paramètre
 ```bash
 python aesdecryptor.py fichier.aesd -p votre_mot_de_passe
+python aesdecryptor.py fichier.aesf -p votre_mot_de_passe
 ```
 
 ### Aide
@@ -50,7 +53,7 @@ python aesdecryptor.py --help
 
 ## 📝 Exemples d'Utilisation
 
-### Exemple 1 : Déchiffrement Interactif
+### Exemple 1 : Déchiffrement Interactif (.aesd)
 ```bash
 $ python aesdecryptor.py document.pdf.aesd
 🔐 AES Drive Decryptor - Implémentation Python Non Officielle
@@ -59,12 +62,12 @@ $ python aesdecryptor.py document.pdf.aesd
 Mot de passe AES Drive: [saisie masquée]
 ```
 
-### Exemple 2 : Déchiffrement avec Mot de Passe
+### Exemple 2 : Déchiffrement avec Mot de Passe (.aesf)
 ```bash
-$ python aesdecryptor.py photo.jpg.aesd -p monmotdepasse
+$ python aesdecryptor.py photo.jpg.aesf -p monmotdepasse
 🔐 AES Drive Decryptor - Implémentation Python Non Officielle
 ========================================================================
-🔓 Déchiffrement du fichier 'photo.jpg.aesd'...
+🔓 Déchiffrement du fichier 'photo.jpg.aesf'...
 ```
 
 ### Exemple 3 : Sans Spécifier de Fichier
@@ -73,6 +76,15 @@ $ python aesdecryptor.py
 🔐 AES Drive Decryptor - Implémentation Python Non Officielle
 ========================================================================
 Fichier de données: document.aesd
+```
+
+### Exemple 4 : Extensions Supportées
+```bash
+# Fichiers .aesd (AES Drive Standard)
+$ python aesdecryptor.py archive.zip.aesd
+
+# Fichiers .aesf (AES Drive File)
+$ python aesdecryptor.py video.mp4.aesf
 ```
 
 ## 📊 Sortie du Programme
@@ -123,7 +135,8 @@ Longueur de données attendue.............. (4) 1024
 
 ### Extension Incorrecte
 ```
-❌ Erreur: Le fichier doit avoir l'extension .aesd, reçu: .txt
+❌ Erreur: Le fichier doit avoir l'extension .aesd ou .aesf, reçu: .txt
+   Extensions supportées: .aesd, .aesf
 ```
 
 ### Mot de Passe Incorrect
@@ -167,11 +180,16 @@ python validate_setup.py
 
 ## 📁 Structure des Fichiers de Sortie
 
-Le fichier déchiffré sera créé dans le même répertoire que le fichier source, sans l'extension `.aesd` :
+Le fichier déchiffré sera créé dans le même répertoire que le fichier source, sans l'extension `.aesd` ou `.aesf` :
 
 ```
+Fichiers .aesd :
 Avant : document.pdf.aesd
 Après : document.pdf
+
+Fichiers .aesf :
+Avant : video.mp4.aesf
+Après : video.mp4
 ```
 
 ## 🛡️ Sécurité

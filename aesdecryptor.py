@@ -36,12 +36,15 @@ from res import DataFile, check_arguments, print_parameter, print_data_file_info
 init(autoreset=True)
 
 # Constantes
-DEFAULT_FILE = "test.png.aesd"
+DEFAULT_FILE = "test.png.aesd"  # Fichier par défaut (supporte aussi .aesf)
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
 PWD_ENCODING = "UTF-8"
 HEADER_LENGTH = 144
 SECTOR_LENGTH = 512
+
+# Extensions de fichiers supportées
+SUPPORTED_EXTENSIONS = [".aesd", ".aesf"]
 
 
 class SecureMemory:
@@ -134,15 +137,16 @@ class AESDecryptor:
             filepath: Chemin vers le fichier chiffré
             
         Returns:
-            Nom de fichier de sortie sans l'extension .aesd
+            Nom de fichier de sortie sans l'extension .aesd ou .aesf
             
         Raises:
-            SystemExit: Si le fichier n'a pas l'extension .aesd
+            SystemExit: Si le fichier n'a pas l'extension .aesd ou .aesf
         """
         encrypted_filename, file_ext = os.path.splitext(filepath)
         
-        if file_ext != ".aesd":
-            print(f"❌ Erreur: Le fichier doit avoir l'extension .aesd, reçu: {file_ext}")
+        if file_ext not in SUPPORTED_EXTENSIONS:
+            print(f"❌ Erreur: Le fichier doit avoir l'extension .aesd ou .aesf, reçu: {file_ext}")
+            print(f"   Extensions supportées: {', '.join(SUPPORTED_EXTENSIONS)}")
             sys.exit(1)
             
         return encrypted_filename

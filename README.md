@@ -8,6 +8,7 @@ Ce projet fournit une implémentation Python pour déchiffrer des fichiers indiv
 
 ## ✨ Fonctionnalités
 
+- ✅ **Support multi-extensions**: Déchiffrement des fichiers `.aesd` et `.aesf`
 - ✅ **Déchiffrement d'en-tête**: Implémentation complète utilisant AES-GCM
 - ✅ **Déchiffrement de données XTS-AES**: Support complet utilisant les bibliothèques cryptographiques Python standard
 - ✅ **Dérivation de clé**: Implémentation PBKDF2-HMAC-SHA512 correspondant aux fonctions crypto .NET
@@ -65,11 +66,14 @@ Ce projet fournit une implémentation Python pour déchiffrer des fichiers indiv
 **Utilisation de base:**
 ```bash
 python aesdecryptor.py fichier_chiffre.aesd
+# ou
+python aesdecryptor.py fichier_chiffre.aesf
 ```
 
 **Avec mot de passe en argument:**
 ```bash
 python aesdecryptor.py fichier_chiffre.aesd -p votre_mot_de_passe
+python aesdecryptor.py fichier_chiffre.aesf -p votre_mot_de_passe
 ```
 
 **Obtenir de l'aide:**

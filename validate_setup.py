@@ -92,6 +92,7 @@ def check_functionality():
     
     try:
         from res import check_arguments
+        import aesdecryptor
         
         # Test avec arguments d'aide
         result = check_arguments(['script.py', '--help'])
@@ -100,12 +101,27 @@ def check_functionality():
         else:
             print("⚠️ Fonction check_arguments - comportement inattendu")
         
-        # Test avec arguments normaux
+        # Test avec arguments normaux (.aesd)
         result = check_arguments(['script.py', 'test.aesd', '-p', 'password'])
         if result and result.get('file') == 'test.aesd' and result.get('pwd') == 'password':
-            print("✅ Analyse des arguments")
+            print("✅ Analyse des arguments (.aesd)")
         else:
-            print("⚠️ Analyse des arguments - résultat inattendu")
+            print("⚠️ Analyse des arguments (.aesd) - résultat inattendu")
+        
+        # Test avec arguments normaux (.aesf)
+        result = check_arguments(['script.py', 'test.aesf', '-p', 'password'])
+        if result and result.get('file') == 'test.aesf' and result.get('pwd') == 'password':
+            print("✅ Analyse des arguments (.aesf)")
+        else:
+            print("⚠️ Analyse des arguments (.aesf) - résultat inattendu")
+        
+        # Test des extensions supportées
+        decryptor = aesdecryptor.AESDecryptor()
+        supported_exts = aesdecryptor.SUPPORTED_EXTENSIONS
+        if '.aesd' in supported_exts and '.aesf' in supported_exts:
+            print("✅ Extensions supportées (.aesd et .aesf)")
+        else:
+            print("⚠️ Extensions supportées - configuration inattendue")
         
         return True
         

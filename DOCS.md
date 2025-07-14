@@ -58,6 +58,10 @@ python validate_setup.py
 ```bash
 python check_navigation.py
 ```
+- **`test_extensions.py`** - Test du support des extensions .aesd et .aesf
+```bash
+python test_extensions.py
+```
 
 ## 🗺️ Navigation Rapide
 

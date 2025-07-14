@@ -126,12 +126,15 @@ PWD_ENCODING = "UTF8"
 #### **Après :**
 ```python
 # Constantes
-DEFAULT_FILE = "test.png.aesd"
+DEFAULT_FILE = "test.png.aesd"  # Fichier par défaut (supporte aussi .aesf)
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
 PWD_ENCODING = "UTF-8"
 HEADER_LENGTH = 144
 SECTOR_LENGTH = 512
+
+# Extensions de fichiers supportées
+SUPPORTED_EXTENSIONS = [".aesd", ".aesf"]
 ```
 
 ### 7. Modularité et Réutilisabilité
@@ -166,7 +169,34 @@ class DataFile:
         # Implémentation...
 ```
 
-### 8. Point d'Entrée Principal
+### 8. Support Multi-Extensions
+
+#### **Avant :**
+```python
+def validate_file_extension(self, filepath: str) -> str:
+    encrypted_filename, file_ext = os.path.splitext(filepath)
+    
+    if file_ext != ".aesd":
+        print(f"❌ Erreur: Le fichier doit avoir l'extension .aesd, reçu: {file_ext}")
+        sys.exit(1)
+        
+    return encrypted_filename
+```
+
+#### **Après :**
+```python
+def validate_file_extension(self, filepath: str) -> str:
+    encrypted_filename, file_ext = os.path.splitext(filepath)
+    
+    if file_ext not in SUPPORTED_EXTENSIONS:
+        print(f"❌ Erreur: Le fichier doit avoir l'extension .aesd ou .aesf, reçu: {file_ext}")
+        print(f"   Extensions supportées: {', '.join(SUPPORTED_EXTENSIONS)}")
+        sys.exit(1)
+        
+    return encrypted_filename
+```
+
+### 9. Point d'Entrée Principal
 
 #### **Avant :**
 Code exécuté directement au niveau du module
@@ -208,6 +238,7 @@ colorama>=0.4.6
 
 | Aspect | Avant | Après |
 |--------|-------|-------|
+| **Extensions supportées** | .aesd seulement | .aesd et .aesf |
 | **Lignes de code principal** | ~344 | ~280 (mieux organisé) |
 | **Fonctions/Méthodes** | Code procédural | 8 méthodes spécialisées |
 | **Gestion d'erreurs** | Basique | Robuste avec try/catch |
