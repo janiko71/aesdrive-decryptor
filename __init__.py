@@ -1,5 +1,5 @@
 """
-AES Drive Decryptor - Professional Python Implementation
+AES Drive Decryptor - Opens source Python Implementation
 
 A secure, efficient, and professional tool for decrypting AES Drive encrypted files.
 This package provides a complete solution with modern Python best practices.
