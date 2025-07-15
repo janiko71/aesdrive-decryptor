@@ -216,7 +216,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour les dé
 ## 🙏 Remerciements
 
 - Inspiration de l'implémentation originale de janiko71
-- /n Software pour la documentation du format AES Drive
+- /n Software pour la documentation du format AES Drive et tout particulièrement Reese KROME pour son aide précieuse
 - Mainteneurs de la bibliothèque Python cryptography
 - Contributeurs et testeurs
 
