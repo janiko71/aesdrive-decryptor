@@ -1,3 +1,309 @@
+# requirements.txt
+"""
+Dependencies for AES Drive Decryptor - Open source full version
+"""
+
+# Core cryptographic library
 cryptography>=41.0.0
-colorama>=0.4.6
-tqdm>=4.65.0
+
+# Command line interface and argument parsing
+argparse  # Built-in, but listed for clarity
+
+# Optional dependencies for enhanced functionality
+colorama>=0.4.6  # Cross-platform colored terminal output
+
+# Development dependencies (install with pip install -r requirements-dev.txt)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# mypy>=1.0.0
+# flake8>=6.0.0
+# pre-commit>=3.0.0
+
+---
+
+# requirements-dev.txt (for development)
+"""
+Development dependencies for AES Drive Decryptor
+"""
+
+# Testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+
+# Code quality tools
+black>=23.0.0
+mypy>=1.0.0
+flake8>=6.0.0
+isort>=5.12.0
+
+# Git hooks
+pre-commit>=3.0.0
+
+# Documentation
+sphinx>=6.0.0
+sphinx-rtd-theme>=1.2.0
+
+# Type checking for cryptography
+types-cryptography
+
+---
+
+# setup.py
+"""
+Setup script for AES Drive Decryptor - Professional Version
+"""
+
+from setuptools import setup, find_packages
+from pathlib import Path
+
+# Read README for long description
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text(encoding='utf-8')
+
+# Read requirements
+requirements = []
+with open('requirements.txt', 'r') as f:
+    for line in f:
+        line = line.strip()
+        if line and not line.startswith('#') and not line.startswith('-'):
+            requirements.append(line)
+
+setup(
+    name="aesdrive-decryptor",
+    version="2.0.0",
+    author="Professional refactor of janiko71's work",
+    author_email="",
+    description="Professional AES Drive file decryptor",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/janiko71/aesdrive-decryptor",
+    project_urls={
+        "Bug Reports": "https://github.com/janiko71/aesdrive-decryptor/issues",
+        "Source": "https://github.com/janiko71/aesdrive-decryptor",
+        "Documentation": "https://github.com/janiko71/aesdrive-decryptor/wiki",
+    },
+    packages=find_packages(),
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: End Users/Desktop",
+        "Topic :: Security :: Cryptography",
+        "Topic :: System :: Archiving",
+        "Topic :: Utilities",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Operating System :: OS Independent",
+        "Environment :: Console",
+    ],
+    python_requires=">=3.8",
+    install_requires=requirements,
+    extras_require={
+        "dev": [
+            "pytest>=7.0.0",
+            "pytest-cov>=4.0.0",
+            "black>=23.0.0",
+            "mypy>=1.0.0",
+            "flake8>=6.0.0",
+            "pre-commit>=3.0.0",
+        ],
+        "docs": [
+            "sphinx>=6.0.0",
+            "sphinx-rtd-theme>=1.2.0",
+        ],
+    },
+    entry_points={
+        "console_scripts": [
+            "aesdecryptor=aes_decryptor:main",
+        ],
+    },
+    keywords=[
+        "aes", "encryption", "decryption", "aesdrive", "security", 
+        "cryptography", "file-decryption", "xts-aes"
+    ],
+    include_package_data=True,
+    zip_safe=False,
+    platforms=["any"],
+)
+
+---
+
+# pyproject.toml (modern Python packaging)
+"""
+Modern Python packaging configuration
+"""
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aesdrive-decryptor"
+dynamic = ["version"]
+description = "Professional AES Drive file decryptor"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Professional refactor of janiko71's work"},
+]
+maintainers = [
+    {name = "Professional refactor of janiko71's work"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Archiving",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "cryptography>=41.0.0",
+    "colorama>=0.4.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "flake8>=6.0.0",
+    "isort>=5.12.0",
+    "pre-commit>=3.0.0",
+]
+docs = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/janiko71/aesdrive-decryptor"
+Repository = "https://github.com/janiko71/aesdrive-decryptor"
+Issues = "https://github.com/janiko71/aesdrive-decryptor/issues"
+Changelog = "https://github.com/janiko71/aesdrive-decryptor/blob/main/CHANGELOG.md"
+
+[project.scripts]
+aesdecryptor = "aes_decryptor:main"
+
+[tool.setuptools_scm]
+write_to = "src/_version.py"
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+    "*_test.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["aes_decryptor", "res"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = [
+    "E203",  # whitespace before ':'
+    "E501",  # line too long (handled by black)
+    "W503",  # line break before binary operator
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".tox",
+]
