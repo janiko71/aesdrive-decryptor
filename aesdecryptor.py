@@ -7,6 +7,7 @@
 
 DEFAULT_FILE = "test.png.aesd"
 
+
 KDF_ITERATIONS = 50000
 DEFAULT_PWD = "aesdformatguide"
 PWD_ENCODING = "UTF8"
@@ -108,7 +109,7 @@ encrypted_data_filename, encrypted_data_fileext = os.path.splitext(data_filepath
 original_dir, original_file = os.path.split(data_filepath)
 
 
-if (encrypted_data_fileext != ".aesd"):
+if (encrypted_data_fileext not in [".aesd", ".aesf"]):
     print("Error: the file you want to decrypt has a bad suffix (filename:" + encrypted_data_filename + ")")
     exit(1)
     
